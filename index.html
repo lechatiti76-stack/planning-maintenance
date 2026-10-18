@@ -115,7 +115,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .btn-pdf:hover { background: #e3ebfd; }
 
 /* ---- page ---- */
-.page { max-width: 1500px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 18px 48px; display: flex; flex-direction: column; gap: 18px; }
+.page { max-width: 1500px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 18px calc(96px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: 18px; }
 .page-head { display: flex; align-items: flex-end; gap: 12px 18px; flex-wrap: wrap; }
 .page-head h1 { font-size: 1.7rem; line-height: 1.1; }
 .page-head .sub { color: var(--ink-2); font-size: .92rem; }
@@ -334,7 +334,7 @@ table.rc td { vertical-align: top; }
 .apps { display: flex; flex-direction: column; gap: 8px; }
 .approw { display: grid; grid-template-columns: minmax(120px, auto) minmax(0, 1fr) auto auto; gap: 10px; align-items: end; padding: 8px 10px; border: 1px solid var(--line-2); border-radius: 8px; background: var(--surface-2); }
 @media (max-width: 640px) { .approw { grid-template-columns: 1fr auto; } .approw .field { grid-column: 1 / -1; } }
-.toasts { position: fixed; left: 50%; transform: translateX(-50%); bottom: max(18px, calc(env(safe-area-inset-bottom, 0px) + 12px)); z-index: 60; display: flex; flex-direction: column; gap: 6px; width: min(92vw, 440px); }
+.toasts { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(env(safe-area-inset-bottom, 0px) + 86px); z-index: 60; display: flex; flex-direction: column; gap: 6px; width: min(92vw, 440px); }
 .toast { background: var(--ink); color: var(--bg); padding: 10px 14px; border-radius: 8px; font-size: .88rem; font-weight: 600; box-shadow: var(--shadow); }
 .toast.err { background: var(--bad); color: #fff; }
 
@@ -568,6 +568,22 @@ body { background: var(--bg-art, none), var(--bg); background-attachment: fixed;
 .fond-card.on { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
 .fond-sw { height: 78px; border-radius: 8px; display: grid; place-items: center; font-size: 1.6rem; border: 1px solid var(--line); margin-bottom: 4px; }
 .inst { margin: 0; padding-left: 1.2rem; display: flex; flex-direction: column; gap: 6px; }
+
+/* barre d'accès rapide fixe en bas de page */
+.dock { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; display: flex; justify-content: center; padding: 0 max(8px, env(safe-area-inset-right, 0px)) env(safe-area-inset-bottom, 0px) max(8px, env(safe-area-inset-left, 0px)); pointer-events: none; }
+.dock-in { pointer-events: auto; display: flex; gap: 2px; margin-bottom: 8px; padding: 6px 8px; background: color-mix(in srgb, var(--band) 92%, transparent); border: 1px solid rgba(255, 255, 255, .12); border-radius: 18px; box-shadow: 0 14px 34px -12px rgba(0, 0, 0, .6); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); max-width: 100%; overflow-x: auto; scrollbar-width: none; position: relative; }
+.dock-in::-webkit-scrollbar { display: none; }
+.dock-in::before { content: ""; position: absolute; left: 14px; right: 14px; top: 0; height: 2px; border-radius: 2px; background: linear-gradient(90deg, #22d3ee, #3b82f6, #818cf8, #fb923c, #f472b6); opacity: .85; }
+.dock-b { flex: none; display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 68px; padding: 6px 6px 5px; background: none; border: 0; border-radius: 12px; color: var(--band-ink-2); cursor: pointer; font: 600 .74rem var(--font-b); }
+.dock-b .dock-ic { width: 36px; height: 30px; display: grid; place-items: center; border-radius: 10px; transition: background .15s, color .15s, transform .15s; }
+.dock-b:hover { color: var(--band-ink); }
+.dock-b:hover .dock-ic { background: rgba(255, 255, 255, .1); transform: translateY(-2px); }
+.dock-b[aria-current="page"] { color: #fff; }
+.dock-b[aria-current="page"] .dock-ic { background: linear-gradient(135deg, #2563eb, #0891b2); color: #fff; box-shadow: 0 4px 14px -4px rgba(37, 99, 235, .8); }
+.dock-b[data-act="newdem"] .dock-ic { color: #7dd3fc; }
+@media (max-width: 600px) { .dock-in { margin-bottom: 6px; padding: 5px; border-radius: 16px; } .dock-b { min-width: 58px; font-size: .66rem; padding: 4px 3px; } .dock-b .dock-ic { width: 32px; height: 28px; } }
+@media print { .dock { display: none !important; } }
+@media (max-width: 600px) { .band .btn-inst, .band .btn-new { display: none; } }
 </style>
 
 </head>
@@ -608,6 +624,7 @@ body { background: var(--bg-art, none), var(--bg); background-attachment: fixed;
   </div>
 </header>
 <main class="page" id="view"></main>
+<nav class="dock no-print" id="dock" aria-label="Accès rapide"></nav>
 <div id="modalRoot"></div>
 <div class="toasts" id="toasts" aria-live="polite"></div>
 
@@ -1351,7 +1368,7 @@ function render() {
   if (!S.loaded) html = `<div class="panel"><div class="empty">Chargement des données de maintenance…</div></div>`;
   else html = ({ home: viewHome, grai: viewGraissage, stats: viewStats, prog: viewProg, dem: viewDem, dash: viewDash, week: viewWeek, month: viewMonth, year: viewYear, tasks: viewTasks, equip: viewEquip, settings: viewSettings }[S.ui.view] || viewHome)();
   if (store.mode === 'local' && S.loaded) html = `<div class="banner no-print">${window.claude ? 'Mode local : les données sont gardées dans ce navigateur uniquement. Ouvrez l’application depuis claude.ai pour les synchroniser entre vos appareils.' : 'Les données sont gardées dans ce navigateur. Pensez au bouton « ✔ Terminé » qui propose une sauvegarde .json à garder en lieu sûr (Paramètres › Sauvegarde pour la restaurer).'}</div>` + html;
-  $('#view').innerHTML = html;
+  $('#view').innerHTML = html; if (typeof renderDock === 'function') renderDock();
   if (fid) { const el = document.getElementById(fid); if (el) { el.focus(); if (selStart !== null && el.setSelectionRange) try { el.setSelectionRange(selStart, selStart); } catch (e) { /* type non texte */ } } }
 }
 function emptyData() {
@@ -3441,6 +3458,8 @@ document.addEventListener('change', (e) => {
 
 /* ---------- vue : accueil (tuiles à déplier) ---------- */
 const IC = {
+  home: '<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h5v-6h4v6h5V9.5"/>',
+  inst: '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/><path d="m9 9 3 3 3-3M12 6v6"/>',
   prog: '<path d="M8 2v4M16 2v4M3 9h18"/><rect x="3" y="4" width="18" height="17" rx="2"/><path d="m8.5 15 2.5 2.5 4.5-5"/>',
   conf: '<circle cx="12" cy="12" r="9"/><path d="m8 12.5 2.8 2.8L16.5 9.5"/>',
   dem: '<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>',
@@ -3493,12 +3512,9 @@ function viewHome() {
     grid += `<button type="button" class="hm-tile tone-${x.tone}${open === x.k ? ' on' : ''}" data-act="hm" data-k="${x.k}" aria-expanded="${open === x.k}"><span class="hm-disc"><span class="hm-ic">${icon(x.ic)}</span><span class="hm-v">${x.v}</span></span><span class="hm-t">${esc(x.t)}</span><span class="hm-s">${esc(x.s)}</span><span class="hm-chev" aria-hidden="true">${open === x.k ? '▲' : '▼'}</span></button>`;
     if (open === x.k) grid += panel(x.k);
   });
-  const quick = [['add', 'Demande reçue', 'data-act="newdem"'], ['imp', 'Réception d’un tableau', 'data-act="reception"'], ['week', 'Semaine', 'data-view="week"'], ['month', 'Mois', 'data-view="month"'], ['year', 'Année', 'data-view="year"'], ['tasks', 'Tâches', 'data-view="tasks"'], ['stats', 'Statistiques', 'data-view="stats"'], ['set', 'Paramètres', 'data-view="settings"'], ['imp', 'Installer l’appli', 'data-act="install"']];
   const hello = +new Date().getHours() < 18 ? 'Bonjour' : 'Bonsoir';
   return `<div class="hm-hero"><div><h1>${hello}</h1><div class="sub">${fmtLong(D.T).replace(/^./, (c) => c.toUpperCase())} · semaine ${D.cw.week} · ${esc(S.settings.site)}</div></div><div class="small muted">Touchez un cercle pour le déplier</div></div>
-    <div class="hm-grid">${grid}</div>
-    <h2 class="hm-h2">Accès rapide</h2>
-    <div class="hm-quick">${quick.map(([i, l, a]) => `<button type="button" class="hm-q" ${a}><span class="hm-qd">${icon(i, 24)}</span><span>${l}</span></button>`).join('')}</div>`;
+    <div class="hm-grid">${grid}</div>`;
 }
 function homePanel(k, D) {
   const more = (n, lab, act) => (n ? `<button type="button" class="btn sm" ${act}>${lab}</button>` : '');
@@ -3544,6 +3560,12 @@ function homePanel(k, D) {
     return ph(`Échéances ${D.Y} déjà passées : part réalisée par famille`, `<button type="button" class="btn sm" data-view="dash">Tableau théorique / réel complet</button>`) + `<div class="hm-bars">${fam || '<p class="muted">Aucune échéance passée.</p>'}</div>`;
   }
   return '';
+}
+const DOCK = [['home', 'Accueil', 'data-view="home"', 'home'], ['add', 'Demande', 'data-act="newdem"'], ['imp', 'Réception', 'data-act="reception"'], ['week', 'Semaine', 'data-view="week"', 'week'], ['month', 'Mois', 'data-view="month"', 'month'], ['year', 'Année', 'data-view="year"', 'year'], ['tasks', 'Tâches', 'data-view="tasks"', 'tasks'], ['stats', 'Stats', 'data-view="stats"', 'stats'], ['set', 'Paramètres', 'data-view="settings"', 'settings'], ['inst', 'Appli', 'data-act="install"']];
+function renderDock() {
+  const d = document.getElementById('dock'); if (!d) return;
+  if (!d.childElementCount) d.innerHTML = `<div class="dock-in">${DOCK.map(([i, l, a, v]) => `<button type="button" class="dock-b" ${a}${v ? ` data-dv="${v}"` : ''}><span class="dock-ic">${icon(i, 22)}</span><span class="dock-l">${l}</span></button>`).join('')}</div>`;
+  d.querySelectorAll('[data-dv]').forEach((b) => b.setAttribute('aria-current', b.dataset.dv === S.ui.view ? 'page' : 'false'));
 }
 Object.assign(ACT, {
   hm: (ds) => { S.ui.hm = S.ui.hm === ds.k ? '' : ds.k; render(); if (S.ui.hm) setTimeout(() => { const p = document.getElementById('hm-panel'); if (p) { const r = p.getBoundingClientRect(); if (r.bottom > innerHeight) p.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } }, 30); },
