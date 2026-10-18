@@ -529,13 +529,52 @@ body.intro-active { overflow: hidden; }
 .outro-end-list { list-style: none; margin: .4rem 0; padding: 0; color: #d1fae5; display: flex; flex-direction: column; gap: .25rem; }
 .outro-end-hint { margin: .4rem 0 .8rem; color: #cbd5e1; }
 @media (prefers-reduced-motion: reduce) { .intro-splash, .intro-splash * { animation: none !important; transition: opacity .3s ease !important; } .intro-skip, .intro-sound { opacity: 1 !important; } }
+
+/* ---------- thèmes de fond (Paramètres › Apparence) ---------- */
+body { background: var(--bg-art, none), var(--bg); background-attachment: fixed; }
+.band::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: linear-gradient(90deg, #22d3ee, #3b82f6, #818cf8, #fb923c, #f472b6); opacity: .9; }
+.btn-inst { background: rgba(255,255,255,.08); color: var(--band-ink); border: 1px solid rgba(255,255,255,.2); border-radius: 6px; padding: 7px 11px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+.btn-inst:hover { background: rgba(255,255,255,.16); }
+:root[data-fond="lhte"] {
+  --bg: #050f2e; --surface: rgba(11, 26, 64, .9); --surface-2: rgba(18, 37, 84, .96); --line: rgba(110, 150, 255, .24); --line-2: rgba(110, 150, 255, .13);
+  --accent: #38bdf8; --accent-soft: rgba(56, 189, 248, .16); --accent-ink: #04102b;
+  --band: #040c26; --band-2: #1b3474; --mute-bg: rgba(140, 170, 230, .13);
+  --bg-art: radial-gradient(ellipse 55% 45% at 12% 8%, rgba(34, 211, 238, .2), transparent 70%), radial-gradient(ellipse 45% 40% at 92% 22%, rgba(244, 114, 182, .17), transparent 70%), radial-gradient(ellipse 55% 45% at 72% 98%, rgba(251, 146, 60, .14), transparent 70%), radial-gradient(ellipse 80% 60% at 40% 55%, rgba(59, 130, 246, .2), transparent 75%), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cg fill='%23cfe3ff'%3E%3Ccircle cx='20' cy='30' r='.9' opacity='.55'/%3E%3Ccircle cx='140' cy='18' r='.6' opacity='.4'/%3E%3Ccircle cx='230' cy='70' r='1' opacity='.5'/%3E%3Ccircle cx='70' cy='110' r='.7' opacity='.35'/%3E%3Ccircle cx='190' cy='150' r='.8' opacity='.45'/%3E%3Ccircle cx='35' cy='200' r='.6' opacity='.35'/%3E%3Ccircle cx='120' cy='235' r='1' opacity='.5'/%3E%3Ccircle cx='245' cy='215' r='.6' opacity='.35'/%3E%3C/g%3E%3Cg fill='%2360a5fa' opacity='.35'%3E%3Crect x='95' y='60' width='3' height='3' transform='rotate(45 96 61)'/%3E%3Crect x='210' y='120' width='2.5' height='2.5' transform='rotate(45 211 121)'/%3E%3Crect x='55' y='160' width='2.5' height='2.5' transform='rotate(45 56 161)'/%3E%3C/g%3E%3C/svg%3E");
+}
+:root[data-fond="poste"] {
+  --bg: #071216; --surface: rgba(12, 30, 36, .92); --surface-2: rgba(16, 40, 46, .97); --line: rgba(52, 211, 153, .2); --line-2: rgba(52, 211, 153, .1);
+  --accent: #34d399; --accent-soft: rgba(52, 211, 153, .15); --accent-ink: #052e22; --info: #5eead4; --info-bg: rgba(94, 234, 212, .13);
+  --band: #040e11; --band-2: #14423a; --mute-bg: rgba(120, 190, 170, .12);
+  --bg-art: linear-gradient(rgba(52, 211, 153, .06) 1px, transparent 1px) 0 0 / 28px 28px, linear-gradient(90deg, rgba(52, 211, 153, .06) 1px, transparent 1px) 0 0 / 28px 28px, radial-gradient(ellipse 70% 60% at 50% 0%, rgba(52, 211, 153, .14), transparent 70%), radial-gradient(ellipse 50% 40% at 95% 100%, rgba(251, 191, 36, .1), transparent 70%);
+}
+:root[data-fond="signal"] {
+  --bg: #0d0724; --surface: rgba(28, 16, 64, .9); --surface-2: rgba(38, 22, 84, .96); --line: rgba(196, 181, 253, .24); --line-2: rgba(196, 181, 253, .12);
+  --accent: #fb923c; --accent-soft: rgba(251, 146, 60, .16); --accent-ink: #2a0f02;
+  --band: #0a051c; --band-2: #3b1d7a; --mute-bg: rgba(196, 181, 253, .12);
+  --bg-art: radial-gradient(ellipse 50% 45% at 10% 90%, rgba(251, 146, 60, .22), transparent 70%), radial-gradient(ellipse 50% 45% at 92% 10%, rgba(34, 211, 238, .2), transparent 70%), radial-gradient(ellipse 70% 60% at 50% 50%, rgba(124, 58, 237, .25), transparent 75%), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cg fill='%23cfe3ff'%3E%3Ccircle cx='20' cy='30' r='.9' opacity='.55'/%3E%3Ccircle cx='140' cy='18' r='.6' opacity='.4'/%3E%3Ccircle cx='230' cy='70' r='1' opacity='.5'/%3E%3Ccircle cx='70' cy='110' r='.7' opacity='.35'/%3E%3Ccircle cx='190' cy='150' r='.8' opacity='.45'/%3E%3Ccircle cx='35' cy='200' r='.6' opacity='.35'/%3E%3Ccircle cx='120' cy='235' r='1' opacity='.5'/%3E%3Ccircle cx='245' cy='215' r='.6' opacity='.35'/%3E%3C/g%3E%3Cg fill='%2360a5fa' opacity='.35'%3E%3Crect x='95' y='60' width='3' height='3' transform='rotate(45 96 61)'/%3E%3Crect x='210' y='120' width='2.5' height='2.5' transform='rotate(45 211 121)'/%3E%3Crect x='55' y='160' width='2.5' height='2.5' transform='rotate(45 56 161)'/%3E%3C/g%3E%3C/svg%3E");
+}
+:root[data-fond="aurore"] {
+  --bg: #eef1fb; --surface: rgba(255, 255, 255, .9); --surface-2: rgba(244, 246, 253, .97); --line: #d5dcec; --line-2: #e6eaf5;
+  --bg-art: radial-gradient(ellipse 50% 45% at 8% 10%, rgba(103, 232, 249, .45), transparent 70%), radial-gradient(ellipse 45% 40% at 95% 18%, rgba(249, 168, 212, .45), transparent 70%), radial-gradient(ellipse 60% 45% at 60% 100%, rgba(253, 186, 116, .4), transparent 70%), radial-gradient(ellipse 50% 40% at 35% 55%, rgba(165, 180, 252, .35), transparent 75%);
+}
+:root[data-fond="photo"] { --surface: rgba(10, 17, 34, .88); --surface-2: rgba(16, 26, 50, .96); --band: #050a18; }
+:root[data-fond="photo"] body { background: linear-gradient(rgba(3, 8, 20, var(--voile, .55)), rgba(3, 8, 20, var(--voile, .55))) fixed, var(--photo) center / cover no-repeat fixed, #0a1120; }
+:root[data-fond="lhte"] .page-head h1, :root[data-fond="signal"] .page-head h1, :root[data-fond="lhte"] .hm-hero h1, :root[data-fond="signal"] .hm-hero h1 { background: linear-gradient(90deg, #e0f2fe, #93c5fd 45%, #f9a8d4); -webkit-background-clip: text; background-clip: text; color: transparent; }
+:root[data-fond="photo"] .hm-hero, :root[data-fond="photo"] .page-head { text-shadow: 0 1px 8px rgba(0, 0, 0, .6); }
+.modal-card { background: var(--surface-2); }
+.fond-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 170px), 1fr)); gap: 12px; }
+.fond-card { display: flex; flex-direction: column; gap: 4px; text-align: left; background: var(--surface-2); border: 2px solid var(--line); border-radius: 12px; padding: 8px 8px 10px; cursor: pointer; color: var(--ink); }
+.fond-card:hover { border-color: var(--accent); }
+.fond-card.on { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.fond-sw { height: 78px; border-radius: 8px; display: grid; place-items: center; font-size: 1.6rem; border: 1px solid var(--line); margin-bottom: 4px; }
+.inst { margin: 0; padding-left: 1.2rem; display: flex; flex-direction: column; gap: 6px; }
 </style>
 
 </head>
 <body>
 <!-- Intro d'ouverture : vidéo du logo LHTE (même animation que Suivi Trains), slogan néon aux couleurs des familles. Se retire seule, ou au toucher / « Passer ». -->
 <div id="introSplash" class="intro-splash" role="presentation" aria-hidden="true" tabindex="-1">
-  <video id="introVideo" class="intro-video" src="assets/lhte-intro-v2.mp4" playsinline webkit-playsinline preload="auto" disablepictureinpicture disableremoteplayback></video>
+  <video id="introVideo" class="intro-video" src="assets/lhte-logo-anim.mp4" playsinline webkit-playsinline preload="auto" disablepictureinpicture disableremoteplayback></video>
   <div class="intro-tagline" id="introTagline" aria-hidden="true">Planning maintenance des installations</div>
   <button type="button" class="intro-sound" id="introSoundBtn" hidden>🔊 Activer le son</button>
   <button type="button" class="intro-skip" id="introSkipBtn">Passer ›</button>
@@ -549,6 +588,7 @@ body.intro-active { overflow: hidden; }
         <span class="sync" id="sync"><i></i><span>Connexion…</span></span>
         <button type="button" class="btn-pdf" data-act="pdfquick" id="btnPdf">PDF semaine</button>
         <button type="button" class="btn-new" data-act="newdem">+ Demande reçue</button>
+        <button type="button" class="btn-inst" data-act="install" title="Installer l’application : raccourci sur le bureau ou l’écran d’accueil">⬇ Appli</button>
         <button type="button" class="btn-end" id="btnEnd" data-act="endsession" title="Sauvegarder et fermer l’application">✔ Terminé</button>
       </div>
     </div>
@@ -2762,8 +2802,8 @@ function viewEquip() {
 
 /* ---------- vue : paramètres ---------- */
 function viewSettings() {
-  const tabs = [['import', 'Import Excel'], ['creneaux', 'Créneaux et disponibilités'], ['mail', 'Mail Information travaux'], ['wagons', 'Wagons'], ['gammes', 'Gammes et périodicités'], ['types', 'Familles et seuils'], ['refs', 'Référentiel'], ['backup', 'Sauvegarde']];
-  const body = { import: setImport, creneaux: setCreneaux, mail: setMail, wagons: setWagons, gammes: setGammes, types: setTypes, refs: setRefs, backup: setBackup }[S.ui.stab] || setImport;
+  const tabs = [['import', 'Import Excel'], ['creneaux', 'Créneaux et disponibilités'], ['mail', 'Mail Information travaux'], ['wagons', 'Wagons'], ['gammes', 'Gammes et périodicités'], ['types', 'Familles et seuils'], ['refs', 'Référentiel'], ['look', 'Apparence'], ['backup', 'Sauvegarde']];
+  const body = { import: setImport, creneaux: setCreneaux, mail: setMail, wagons: setWagons, gammes: setGammes, types: setTypes, refs: setRefs, look: setLook, backup: setBackup }[S.ui.stab] || setImport;
   return head('Paramètres', 'Import des fichiers, périodicités, réglages et données de référence') +
     `<div class="tabs" role="tablist">${tabs.map(([k, l]) => `<button type="button" role="tab" aria-selected="${S.ui.stab === k}" data-act="stab" data-k="${k}">${l}</button>`).join('')}</div>${body()}`;
 }
@@ -3453,7 +3493,7 @@ function viewHome() {
     grid += `<button type="button" class="hm-tile tone-${x.tone}${open === x.k ? ' on' : ''}" data-act="hm" data-k="${x.k}" aria-expanded="${open === x.k}"><span class="hm-disc"><span class="hm-ic">${icon(x.ic)}</span><span class="hm-v">${x.v}</span></span><span class="hm-t">${esc(x.t)}</span><span class="hm-s">${esc(x.s)}</span><span class="hm-chev" aria-hidden="true">${open === x.k ? '▲' : '▼'}</span></button>`;
     if (open === x.k) grid += panel(x.k);
   });
-  const quick = [['add', 'Demande reçue', 'data-act="newdem"'], ['imp', 'Réception d’un tableau', 'data-act="reception"'], ['week', 'Semaine', 'data-view="week"'], ['month', 'Mois', 'data-view="month"'], ['year', 'Année', 'data-view="year"'], ['tasks', 'Tâches', 'data-view="tasks"'], ['stats', 'Statistiques', 'data-view="stats"'], ['set', 'Paramètres', 'data-view="settings"']];
+  const quick = [['add', 'Demande reçue', 'data-act="newdem"'], ['imp', 'Réception d’un tableau', 'data-act="reception"'], ['week', 'Semaine', 'data-view="week"'], ['month', 'Mois', 'data-view="month"'], ['year', 'Année', 'data-view="year"'], ['tasks', 'Tâches', 'data-view="tasks"'], ['stats', 'Statistiques', 'data-view="stats"'], ['set', 'Paramètres', 'data-view="settings"'], ['imp', 'Installer l’appli', 'data-act="install"']];
   const hello = +new Date().getHours() < 18 ? 'Bonjour' : 'Bonsoir';
   return `<div class="hm-hero"><div><h1>${hello}</h1><div class="sub">${fmtLong(D.T).replace(/^./, (c) => c.toUpperCase())} · semaine ${D.cw.week} · ${esc(S.settings.site)}</div></div><div class="small muted">Touchez un cercle pour le déplier</div></div>
     <div class="hm-grid">${grid}</div>
@@ -3516,9 +3556,9 @@ Object.assign(ACT, {
 
 /* ---------- intro d'ouverture (vidéo LHTE, comme Suivi Trains) et fermeture « Terminé » ---------- */
 const INTRO_SOUND_KEY = 'planmaint:introMuted';
-const INTRO_TAGLINE_AT_S = 3.6, INTRO_END_HOLD_MS = 600, INTRO_START_TIMEOUT_MS = 2500, OUTRO_MS = 3000;
-// Dégradé du slogan aux couleurs des familles : ADV bleu, JGP sarcelle, signaux violet, PN orange, caténaire or.
-const INTRO_COLORS = ['#60a5fa', '#2dd4bf', '#a78bfa', '#fb923c', '#facc15'];
+const INTRO_TAGLINE_AT_S = 4.6, INTRO_END_HOLD_MS = 700, INTRO_START_TIMEOUT_MS = 2500, OUTRO_MS = 3000;
+// Dégradé du slogan aux couleurs des lettres du logo LHTE : cyan, bleu, indigo, orange, rose.
+const INTRO_COLORS = ['#22d3ee', '#3b82f6', '#818cf8', '#fb923c', '#f472b6'];
 const readMuted = () => { try { return localStorage.getItem(INTRO_SOUND_KEY) === '1'; } catch (e) { return false; } };
 const writeMuted = (m) => { try { localStorage.setItem(INTRO_SOUND_KEY, m ? '1' : '0'); } catch (e) { /* ignoré */ } };
 function mixHex(a, b, t) { const pa = a.match(/\w\w/g).map((h) => parseInt(h, 16)); const pb = b.match(/\w\w/g).map((h) => parseInt(h, 16)); return '#' + pa.map((v, i) => Math.round(v + (pb[i] - v) * t).toString(16).padStart(2, '0')).join(''); }
@@ -3609,12 +3649,12 @@ function playOutro(r) {
   return new Promise((resolve) => {
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
     const ov = document.createElement('div'); ov.className = 'outro'; ov.setAttribute('role', 'presentation');
-    ov.innerHTML = `<div class="outro-stage"><video class="outro-video" muted playsinline webkit-playsinline preload="auto" disablepictureinpicture disableremoteplayback src="assets/lhte-intro-v2.mp4"></video><div class="outro-fallback-logo" hidden>LHTE</div>
+    ov.innerHTML = `<div class="outro-stage"><video class="outro-video" muted playsinline webkit-playsinline preload="auto" disablepictureinpicture disableremoteplayback src="assets/lhte-logo-anim.mp4"></video><div class="outro-fallback-logo" hidden>LHTE</div>
       <div class="outro-text"><div class="outro-title">Planning sauvegardé</div><div class="outro-sub">${esc(fmtLong(today()))} · ${esc(endLines(r).join(' · '))}</div></div><div class="outro-sweep" aria-hidden="true"></div></div><div class="outro-dot" aria-hidden="true"></div>`;
     document.body.appendChild(ov); document.body.classList.add('intro-active'); buildTagline(ov.querySelector('.outro-title'));
     const v = ov.querySelector('.outro-video'); const fb = () => { v.hidden = true; ov.querySelector('.outro-fallback-logo').hidden = false; };
     v.addEventListener('error', fb);
-    const start = () => { try { v.currentTime = 5; } catch (e) { /* ignoré */ } v.play().catch(fb); };
+    const start = () => { try { v.currentTime = 5.2; } catch (e) { /* ignoré */ } v.play().catch(fb); };
     if (v.readyState >= 1) start(); else v.addEventListener('loadedmetadata', start, { once: true });
     if (reduce) { ov.classList.add('is-static'); setTimeout(() => resolve(ov), 800); return; }
     outroChime(); requestAnimationFrame(() => requestAnimationFrame(() => ov.classList.add('is-playing')));
@@ -3630,6 +3670,83 @@ function showEndScreen(ov, r) {
 }
 Object.assign(ACT, { endsession: () => openEnd(), endrun: () => runEnd() });
 playIntro();
+
+/* ---------- apparence : thème de fond ou photo (réglage propre à chaque appareil) ---------- */
+const LOOK_KEY = 'planmaint:apparence';
+const FONDS = [
+  { id: 'lhte', nom: 'Nuit LHTE', desc: 'Bleu nuit et lueurs du logo (par défaut)', dark: true, sw: 'radial-gradient(circle at 25% 30%, #22d3ee88, transparent 45%), radial-gradient(circle at 80% 70%, #f472b688, transparent 45%), linear-gradient(135deg, #0a2463, #04102b)' },
+  { id: 'poste', nom: 'Poste de contrôle', desc: 'Ardoise, quadrillage et voyants', dark: true, sw: 'linear-gradient(rgba(52,211,153,.18) 1px, transparent 1px) 0 0/12px 12px, linear-gradient(90deg, rgba(52,211,153,.18) 1px, transparent 1px) 0 0/12px 12px, linear-gradient(160deg, #0f1f24, #071014)' },
+  { id: 'signal', nom: 'Signal', desc: 'Violet carré, orange et cyan', dark: true, sw: 'radial-gradient(circle at 20% 80%, #fb923caa, transparent 45%), radial-gradient(circle at 85% 20%, #22d3eeaa, transparent 45%), linear-gradient(135deg, #2e1065, #0b0620)' },
+  { id: 'aurore', nom: 'Aurore', desc: 'Clair et coloré', dark: false, sw: 'radial-gradient(circle at 15% 20%, #a5f3fc, transparent 50%), radial-gradient(circle at 85% 30%, #fbcfe8, transparent 50%), radial-gradient(circle at 50% 95%, #fed7aa, transparent 55%), #eef2ff' },
+  { id: 'clair', nom: 'Classique clair', desc: 'Fond gris clair, cartes blanches', dark: false, sw: 'linear-gradient(#edf0f4, #edf0f4)' },
+  { id: 'sombre', nom: 'Classique sombre', desc: 'Fond anthracite sobre', dark: true, sw: 'linear-gradient(#0a1120, #0a1120)' },
+  { id: 'photo', nom: 'Ma photo', desc: 'Une image de votre choix en fond', dark: true, sw: '' },
+];
+function readLook() { try { return { fond: 'lhte', voile: 55, photo: '', ...(JSON.parse(localStorage.getItem(LOOK_KEY) || '{}') || {}) }; } catch (e) { return { fond: 'lhte', voile: 55, photo: '' }; } }
+function writeLook(l) { try { localStorage.setItem(LOOK_KEY, JSON.stringify(l)); return true; } catch (e) { toast('Image trop lourde pour être gardée sur cet appareil : choisissez-en une plus petite.', 'err'); return false; } }
+let LOOK = readLook();
+function applyLook() {
+  const f = FONDS.find((x) => x.id === LOOK.fond) || FONDS[0];
+  const fond = f.id === 'photo' && !LOOK.photo ? 'lhte' : f.id; const def = FONDS.find((x) => x.id === fond);
+  const r = document.documentElement; r.dataset.fond = fond; r.dataset.theme = def.dark ? 'dark' : 'light';
+  r.style.setProperty('--photo', LOOK.photo && fond === 'photo' ? `url("${LOOK.photo}")` : 'none');
+  r.style.setProperty('--voile', String((+LOOK.voile || 0) / 100));
+  const m = document.querySelector('meta[name="theme-color"]'); if (m) m.content = def.dark ? '#06143a' : '#0e1b36';
+}
+applyLook();
+function setLook() {
+  const cards = FONDS.map((f) => `<button type="button" class="fond-card${LOOK.fond === f.id ? ' on' : ''}" data-act="fond" data-k="${f.id}" aria-pressed="${LOOK.fond === f.id}">
+      <span class="fond-sw" style="${f.id === 'photo' ? (LOOK.photo ? `background:center/cover url('${LOOK.photo}')` : 'background:repeating-linear-gradient(45deg, var(--surface-2) 0 8px, var(--line-2) 8px 16px)') : `background:${f.sw}`}">${f.id === 'photo' && !LOOK.photo ? '<span>📷</span>' : ''}</span>
+      <b>${esc(f.nom)}</b><span class="small muted">${esc(f.desc)}</span></button>`).join('');
+  return `<section class="panel"><div class="panel-h"><h2>Thème de fond</h2><span class="right muted small">Réglage propre à cet appareil</span></div><div class="panel-b stack">
+      <div class="fond-grid">${cards}</div>
+      <div class="row"><label class="btn" for="fondPhoto">📷 Choisir une photo…</label><input type="file" id="fondPhoto" accept="image/*" hidden data-act-change="fondphoto">
+        ${LOOK.photo ? '<button type="button" class="btn danger" data-act="fondnophoto">Retirer la photo</button>' : ''}
+        <label class="row small" style="gap:8px">Voile sur la photo <input type="range" min="0" max="85" step="5" value="${+LOOK.voile || 0}" data-act-change="fondvoile" style="width:160px" aria-label="Voile sur la photo"> <span class="mono">${+LOOK.voile || 0} %</span></label></div>
+      <p class="small muted">La photo est réduite et gardée dans ce navigateur. Un voile sombre garde les tableaux lisibles : augmentez-le si la photo est très claire ou chargée.</p>
+    </div></section>`;
+}
+async function loadPhoto(file) {
+  const url = URL.createObjectURL(file); const img = new Image();
+  await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = url; });
+  const max = 1920, k = Math.min(1, max / Math.max(img.width, img.height)); const c = document.createElement('canvas'); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+  c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(url);
+  let q = 0.82, data = c.toDataURL('image/jpeg', q); while (data.length > 1400000 && q > 0.4) { q -= 0.12; data = c.toDataURL('image/jpeg', q); }
+  return data;
+}
+/* ---------- installer l'application (raccourci bureau / écran d'accueil) ---------- */
+const GH_URL = 'https://lechatiti76-stack.github.io/planning-maintenance/';
+let INSTALL_EVT = null;
+window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); INSTALL_EVT = e; });
+window.addEventListener('appinstalled', () => { INSTALL_EVT = null; toast('Application installée : le raccourci est sur votre bureau / écran d’accueil.'); });
+const isStandalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+async function installApp() {
+  if (INSTALL_EVT) { const e = INSTALL_EVT; INSTALL_EVT = null; e.prompt(); try { const r = await e.userChoice; if (r && r.outcome === 'accepted') return; } catch (err) { /* ignoré */ } }
+  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent), android = /android/i.test(navigator.userAgent), inClaude = !!window.claude || window.top !== window.self;
+  const url = inClaude || !/^https?:/.test(location.protocol) ? GH_URL : location.href.split('#')[0];
+  const steps = isStandalone() ? '<p class="banner">L’application est déjà installée sur cet appareil : vous l’utilisez en ce moment.</p>'
+    : ios ? '<ol class="inst"><li>Ouvrez l’adresse ci-dessous dans <b>Safari</b>.</li><li>Touchez le bouton <b>Partager</b> (carré avec une flèche).</li><li>Choisissez <b>Sur l’écran d’accueil</b>, puis <b>Ajouter</b>.</li></ol>'
+    : android ? '<ol class="inst"><li>Ouvrez l’adresse ci-dessous dans <b>Chrome</b>.</li><li>Menu <b>⋮</b> › <b>Installer l’application</b> (ou « Ajouter à l’écran d’accueil »).</li></ol>'
+    : '<ol class="inst"><li>Ouvrez l’adresse ci-dessous dans <b>Chrome</b> ou <b>Edge</b>.</li><li>Cliquez sur l’icône <b>Installer</b> ⊕ à droite de la barre d’adresse (ou menu ⋮ › <b>Installer Planning Maintenance</b>).</li><li>L’application s’ouvre dans sa propre fenêtre, avec son raccourci sur le <b>bureau</b> et dans le menu Démarrer.</li></ol>';
+  openModal(`<div class="modal-h"><h2>⬇ Installer l’application</h2><button type="button" class="btn ghost x" data-act="close" aria-label="Fermer">✕</button></div>
+    <div class="modal-b stack">${inClaude ? '<p>Ici, l’application tourne dans Claude. Pour avoir une icône sur le bureau, installez la version GitHub (mêmes écrans, intro et bouton Terminé ; vos données s’y reprennent avec une sauvegarde .json).</p>' : ''}
+      ${steps}
+      <div class="row"><a class="btn primary" href="${esc(url)}" target="_blank" rel="noopener">Ouvrir ${inClaude ? 'la version installable' : 'l’application'}</a><button type="button" class="btn" data-act="instcopy" data-u="${esc(url)}">Copier l’adresse</button></div>
+      <p class="mono small" style="word-break:break-all">${esc(url)}</p>
+      ${!ios && !android ? `<hr style="border:0;border-top:1px solid var(--line);width:100%"><p class="small">Sur un PC Windows, vous pouvez aussi poser un simple raccourci sur le bureau : téléchargez-le puis déplacez-le sur le bureau.</p><div class="row"><button type="button" class="btn" data-act="instlnk" data-u="${esc(url)}">⬇ Télécharger le raccourci (.url)</button></div>` : ''}
+    </div>`, true);
+}
+Object.assign(ACT, {
+  fond: (ds) => { if (ds.k === 'photo' && !LOOK.photo) { $('#fondPhoto').click(); return; } LOOK.fond = ds.k; writeLook(LOOK); applyLook(); render(); },
+  fondnophoto: () => { LOOK.photo = ''; if (LOOK.fond === 'photo') LOOK.fond = 'lhte'; writeLook(LOOK); applyLook(); render(); },
+  install: () => installApp(),
+  instcopy: async (ds) => { try { await navigator.clipboard.writeText(ds.u); toast('Adresse copiée.'); } catch (e) { toast('Copie impossible : sélectionnez l’adresse à la main.', 'err'); } },
+  instlnk: (ds) => saveFile('Planning Maintenance LHTE.url', `[InternetShortcut]\r\nURL=${ds.u}\r\nIconIndex=0\r\nIconFile=${ds.u}assets/icons/favicon.ico\r\n`),
+});
+Object.assign(CHANGE, {
+  fondphoto: async (el) => { const f = el.files[0]; el.value = ''; if (!f) return; try { const data = await loadPhoto(f); const prev = { ...LOOK }; LOOK = { ...LOOK, photo: data, fond: 'photo' }; if (!writeLook(LOOK)) { LOOK = prev; return; } applyLook(); render(); toast('Photo de fond appliquée.'); } catch (e) { toast('Image illisible.', 'err'); } },
+  fondvoile: (el) => { LOOK.voile = +el.value; writeLook(LOOK); applyLook(); const s = el.nextElementSibling; if (s) s.textContent = el.value + ' %'; },
+});
 
 document.addEventListener('click', (e) => {
   const v = e.target.closest('[data-view]'); if (v) { go(v.dataset.view); return; }

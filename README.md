@@ -2,8 +2,8 @@
 
 Application web pour planifier et suivre la maintenance des installations du site
 (aiguilles ADV, circuits de voie, signaux, PN, centres poste, caténaire, wagons…).
-Même principe que **Suivi Trains** : une seule page, installable sur téléphone (PWA),
-qui fonctionne aussi hors ligne, avec l’intro vidéo LHTE à l’ouverture et une
+Même principe que **Suivi Trains** : une seule page, installable sur PC et téléphone (PWA),
+qui fonctionne aussi hors ligne, avec l’animation du logo LHTE à l’ouverture et une
 animation de fermeture.
 
 ## Ce que fait l’application
@@ -31,7 +31,11 @@ animation de fermeture.
 3. Après une minute, l’adresse s’affiche, du type
    `https://lechatiti76-stack.github.io/planning-maintenance/`.
 
-## Installer sur le téléphone
+## Installer sur le PC ou le téléphone
+
+- **Dans l’application** : bouton **⬇ Appli** en haut (ou « Installer l’appli » sur l’accueil).
+  Sur Chrome / Edge, l’application s’installe dans sa propre fenêtre avec un raccourci sur le bureau.
+  Sur Windows, un raccourci `.url` à poser sur le bureau est aussi proposé.
 
 - **Android (Chrome)** : ouvrez l’adresse › menu ⋮ › *Installer l’application*.
 - **iPhone (Safari)** : ouvrez l’adresse › bouton Partager › *Sur l’écran d’accueil*.
@@ -45,6 +49,12 @@ ni noms de demandeurs, ni numéros de wagons). Au premier lancement :
 2. Choisissez le fichier `Sauvegarde_maintenance_….json` (export de l’application).
 
 Vous pouvez aussi partir de zéro avec **Importer un fichier Excel** (PDM puis note travaux).
+
+## Apparence
+
+**Paramètres › Apparence** : thèmes de fond (Nuit LHTE par défaut, Poste de contrôle,
+Signal, Aurore, classiques clair et sombre) ou **votre photo** avec un voile réglable.
+Réglage propre à chaque appareil.
 
 ## Où sont les données ?
 
@@ -70,7 +80,7 @@ index.html            l’application complète (HTML, CSS et JavaScript)
 manifest.json         installation sur téléphone (PWA)
 service-worker.js     fonctionnement hors ligne
 assets/
-  lhte-intro-v2.mp4   vidéo d’intro LHTE (même que Suivi Trains)
+  lhte-logo-anim.mp4  animation du logo LHTE (intro et fermeture)
   icons/              icônes de l’application
 ```
 

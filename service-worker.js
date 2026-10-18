@@ -1,10 +1,10 @@
 // Service Worker : met l'application en cache pour qu'elle s'ouvre même sans réseau (PWA).
 // IMPORTANT : le numéro de version change à chaque publication (build_gh.py), ce qui force
 // les appareils à récupérer la nouvelle version au prochain lancement.
-const CACHE = 'planning-maintenance-v1';
-const SHELL = ['./', './index.html', './manifest.json', './assets/lhte-intro-v2.mp4',
+const CACHE = 'planning-maintenance-v2';
+const SHELL = ['./', './index.html', './manifest.json', './assets/lhte-logo-anim.mp4',
   './assets/icons/icon-192.png', './assets/icons/icon-512.png', './assets/icons/icon-maskable-512.png',
-  './assets/icons/apple-touch-icon-180.png', './assets/icons/favicon-32.png', './assets/icons/favicon-16.png'];
+  './assets/icons/apple-touch-icon-180.png', './assets/icons/favicon-32.png', './assets/icons/favicon-16.png', './assets/icons/favicon.ico'];
 const CDN = ['https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js'];
@@ -28,7 +28,7 @@ self.addEventListener('fetch', (e) => {
   // Vidéo d'intro : requêtes « Range » (lecture progressive) servies depuis le cache complet.
   if (url.pathname.endsWith('.mp4')) {
     e.respondWith((async () => {
-      const c = await caches.open(CACHE); const hit = await c.match('./assets/lhte-intro-v2.mp4');
+      const c = await caches.open(CACHE); const hit = await c.match('./assets/lhte-logo-anim.mp4');
       if (!hit) return fetch(req);
       const range = req.headers.get('range'); if (!range) return hit;
       const buf = await hit.arrayBuffer(); const m = /bytes=(\d+)-(\d*)/.exec(range); const start = +m[1]; const end = m[2] ? +m[2] : buf.byteLength - 1;
