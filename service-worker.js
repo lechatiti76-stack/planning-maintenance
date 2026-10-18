@@ -1,7 +1,7 @@
 // Service Worker : met l'application en cache pour qu'elle s'ouvre même sans réseau (PWA).
 // IMPORTANT : le numéro de version change à chaque publication (build_gh.py), ce qui force
 // les appareils à récupérer la nouvelle version au prochain lancement.
-const CACHE = 'planning-maintenance-v4';
+const CACHE = 'planning-maintenance-v5';
 const SHELL = ['./', './index.html', './manifest.json', './assets/lhte-logo-anim.mp4',
   './assets/icons/icon-192.png', './assets/icons/icon-512.png', './assets/icons/icon-maskable-512.png',
   './assets/icons/apple-touch-icon-180.png', './assets/icons/favicon-32.png', './assets/icons/favicon-16.png', './assets/icons/favicon.ico'];

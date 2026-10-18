@@ -144,7 +144,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .seg button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); }
 .field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .field > span { font-size: .78rem; font-weight: 600; color: var(--ink-2); }
-input[type="text"], input[type="date"], input[type="number"], input[type="search"], input:not([type]), select, textarea {
+input[type="text"], input[type="date"], input[type="time"], input[type="email"], input[type="number"], input[type="search"], input:not([type]), select, textarea {
   background: var(--surface-2); border: 1px solid var(--line); border-radius: 7px; padding: 7px 9px; min-height: 36px; width: 100%; min-width: 0; color: var(--ink);
 }
 textarea { min-height: 80px; resize: vertical; font-family: var(--font-m); font-size: .82rem; }
@@ -313,8 +313,10 @@ table.heat td.cur { outline: 2px solid var(--accent); outline-offset: -1px; }
 fieldset.sec { border: 1px solid var(--line-2); border-radius: 9px; padding: 12px; margin: 0; min-width: 0; }
 fieldset.sec legend { font-family: var(--font-d); font-weight: 700; font-size: .85rem; letter-spacing: .07em; text-transform: uppercase; color: var(--ink-3); padding: 0 6px; }
 .slots-ed { display: flex; flex-direction: column; gap: 6px; }
-.slots-ed .srow { display: grid; grid-template-columns: 1.4fr 1fr 1fr 64px auto; gap: 6px; align-items: center; }
-@media (max-width: 520px) { .slots-ed .srow { grid-template-columns: 1fr 1fr; } }
+.slots-ed .srow, .srow-h { display: grid; grid-template-columns: 1.4fr 1fr 1.1fr 1fr 40px; gap: 6px; align-items: center; }
+.srow-h { margin-bottom: -2px; font-weight: 600; }
+.slots-ed .s-fin { padding: 7px 10px; border-radius: 8px; background: var(--accent-soft); color: var(--accent); font-weight: 700; text-align: center; }
+@media (max-width: 520px) { .slots-ed .srow { grid-template-columns: 1fr 1fr; } .srow-h { display: none; } }
 .zonepick { display: flex; flex-direction: column; gap: 6px; }
 input.auto, select.auto { background: color-mix(in srgb, var(--accent) 10%, var(--surface-2)); border-color: color-mix(in srgb, var(--accent) 40%, var(--line)); }
 .check { border-radius: 8px; padding: 9px 12px; font-size: .86rem; background: var(--surface-2); color: var(--ink-2); display: flex; flex-direction: column; gap: 3px; }
@@ -2949,19 +2951,15 @@ function openEditor(id, preset) {
     <fieldset class="sec"><legend>Demande de programmation</legend><div class="form-grid">
       <label class="field"><span>Reçue le</span><input type="date" id="e-recue" value="${esc(dm.recue || '')}"></label>
       <label class="field"><span>Demandeur / mainteneur</span><input id="e-demandeur" list="dl-de" value="${esc(dm.demandeur || '')}"></label>
-      <label class="field"><span>N° de demande</span><input id="e-dref" value="${esc(dm.ref || '')}"></label>
-      <label class="field"><span>Période demandée du</span><input type="date" id="e-du" value="${esc(dm.du || '')}"></label>
-      <label class="field"><span>au</span><input type="date" id="e-au" value="${esc(dm.au || '')}"></label>
-      <label class="field"><span>Plage souhaitée début</span><input type="time" id="e-hdeb" value="${esc(dm.hDeb || '')}" step="300"></label>
-      <label class="field"><span>Plage souhaitée fin</span><input type="time" id="e-hfin" value="${esc(dm.hFin || '')}" step="300"></label>
+      <label class="field"><span>Date souhaitée</span><input type="date" id="e-du" value="${esc(dm.du || '')}"></label>
       <label class="field wide"><span>Contraintes, accès, remarques</span><input id="e-dcom" list="dl-co" value="${esc(dm.comment || '')}"></label>
     </div></fieldset>
     <fieldset class="sec"><legend>Planification</legend><div class="stack">
+      ${slots.length ? '<div class="srow srow-h small muted" aria-hidden="true"><span>Jour</span><span>Début</span><span>Durée</span><span>Fin (calculée)</span><span></span></div>' : ''}
       <div class="slots-ed" id="slotsEd">${slots.map((s, i) => slotRow(s, i)).join('')}</div>
       <div class="row"><button type="button" class="btn sm" data-act="slotadd">+ Ajouter un jour</button>${id ? `<button type="button" class="btn sm" data-act="edplan">Voir les créneaux disponibles</button>` : ''}${slots.length ? '' : '<span class="muted small">Pas encore planifiée</span>'}</div>
       <div class="form-grid">
         <label class="field"><span>Zone (ZEP)</span>${zoneSelect('e-zone', p.zone || '')}</label>
-        <label class="field"><span>Faisceau</span><input id="e-faisceau" list="dl-fa" value="${esc(p.faisceau || '')}"></label>
         <label class="field"><span>Consignation électrique</span><select id="e-consign">${optList([['', '—'], ['NON', 'NON'], ['OUI', 'OUI']], p.consign || '')}</select></label>
         <label class="field"><span>Date de validation AC</span><input type="date" id="e-dVal" value="${esc(p.dVal || '')}"></label>
         <label class="field wide"><span>Commentaire de planification</span><input id="e-pcomment" list="dl-co" value="${esc(p.comment || '')}"></label>
@@ -2981,19 +2979,22 @@ function openEditor(id, preset) {
     <button type="button" class="btn ghost" data-act="close">Fermer</button><button type="button" class="btn primary" data-act="edsave">Enregistrer</button></div>`);
 }
 function slotRow(s, i) {
-  const r = hm(s.h); const deb = r ? toHHMM(r[0]) : '', fin = r ? toHHMM(r[1]) : '';
-  return `<div class="srow" data-slot="${i}" data-h="${esc(s.h || '')}"><input type="date" class="s-date" value="${esc(s.date || '')}" aria-label="Jour"><input type="time" class="s-deb" value="${deb}" step="300" aria-label="Début"><input type="time" class="s-fin" value="${fin}" step="300" aria-label="Fin"><span class="s-dur small muted">${r ? fmtDur(r[1] - r[0]) : ''}</span><button type="button" class="btn sm ghost danger" data-act="slotdel" aria-label="Retirer ce jour">✕</button></div>`;
+  const r = hm(s.h); const deb = r ? toHHMM(r[0]) : '', dur = r ? (r[1] - r[0] + 1440) % 1440 : '';
+  return `<div class="srow" data-slot="${i}" data-h="${esc(s.h || '')}"><input type="date" class="s-date" value="${esc(s.date || '')}" aria-label="Jour"><input type="time" class="s-deb" value="${deb}" step="300" aria-label="Début de l’intervention"><select class="s-dur" aria-label="Durée de l’intervention">${durOptions(dur)}</select><span class="s-fin mono" aria-label="Fin calculée">${r ? toHHMM(r[1]) : '—'}</span><button type="button" class="btn sm ghost danger" data-act="slotdel" aria-label="Retirer ce jour">✕</button></div>`;
 }
+function slotFin(row) { const a = fromHHMM(row.querySelector('.s-deb').value), d = +row.querySelector('.s-dur').value; return a !== null && d ? toHHMM((a + d) % 1440) : ''; }
 function readEditor() {
   const v = (id) => { const el = document.getElementById(id); return el ? el.value.trim() : ''; };
   const t = EDIT;
   t.type = v('e-type'); t.designation = v('e-designation'); t.equip = v('e-equip'); t.code = v('e-code'); t.ordre = v('e-ordre'); t.priorite = v('e-priorite');
   t.debut = v('e-debut') || null; t.fin = v('e-fin') || null; t.description = v('e-description'); t.note = v('e-note');
-  const slots = [...document.querySelectorAll('#slotsEd .srow')].map((r) => { const a = r.querySelector('.s-deb').value, b = r.querySelector('.s-fin').value; return { date: r.querySelector('.s-date').value, h: a && b ? `${a}-${b}` : (a || b ? (a || '') + '-' + (b || '') : r.dataset.h || '') }; }).filter((s) => s.date).sort((a, b) => a.date.localeCompare(b.date));
+  const slots = [...document.querySelectorAll('#slotsEd .srow')].map((r) => { const a = r.querySelector('.s-deb').value, b = slotFin(r); return { date: r.querySelector('.s-date').value, h: a && b ? `${a}-${b}` : (a ? a : r.dataset.h || '') }; }).filter((s) => s.date).sort((a, b) => a.date.localeCompare(b.date));
   const old = t.dem || {};
-  const dem = { ...old, recue: v('e-recue') || null, demandeur: v('e-demandeur'), ref: v('e-dref'), du: v('e-du') || null, au: v('e-au') || null, comment: v('e-dcom'), hDeb: v('e-hdeb'), hFin: v('e-hfin') };
+  const dsou = v('e-du') || null;
+  const dem = { ...old, recue: v('e-recue') || null, demandeur: v('e-demandeur'), du: dsou, au: dsou, comment: v('e-dcom') };
   t.dem = dem.recue || dem.demandeur || dem.du || dem.comment || dem.ref ? dem : null;
-  const pf = { faisceau: v('e-faisceau'), zone: zoneVal('e-zone'), consign: v('e-consign'), demandeur: dem.demandeur, dDem: dem.recue, dVal: v('e-dVal') || null, comment: v('e-pcomment') };
+  const zn = zoneVal('e-zone');
+  const pf = { faisceau: (S.settings.refs.zonesFaisceau || {})[zn] || (t.prog && t.prog.faisceau) || '', zone: zn, consign: v('e-consign'), demandeur: dem.demandeur, dDem: dem.recue, dVal: v('e-dVal') || null, comment: v('e-pcomment') };
   const prevDate = t.prog && t.prog.date;
   t.prog = slots.length ? { ...(t.prog || {}), date: slots[0].date, slots, ...pf, planifieLe: (t.prog && t.prog.planifieLe && prevDate === slots[0].date) ? t.prog.planifieLe : today() } : null;
   if (prevDate && t.prog && prevDate !== t.prog.date) t.reports = [...(t.reports || []), { le: today(), ancien: prevDate, nouveau: t.prog.date }];
@@ -3290,7 +3291,7 @@ const ACT = {
   stab: (ds) => { S.ui.stab = ds.k; rememberUi(); render(); },
   impapply: () => applyImport(),
   impcancel: () => { S.importPreview = null; render(); },
-  slotadd: () => { const ed = $('#slotsEd'); const n = ed.children.length; const lastDate = n ? ed.lastElementChild.querySelector('.s-date').value : ''; const lastH = n ? (() => { const r = ed.lastElementChild; const a = r.querySelector('.s-deb').value, b = r.querySelector('.s-fin').value; return a && b ? a + '-' + b : S.settings.creneau; })() : S.settings.creneau; ed.insertAdjacentHTML('beforeend', slotRow({ date: lastDate ? C.addDays(lastDate, 1) : today(), h: lastH }, n)); },
+  slotadd: () => { const ed = $('#slotsEd'); const n = ed.children.length; const lastDate = n ? ed.lastElementChild.querySelector('.s-date').value : ''; const lastH = n ? (() => { const r = ed.lastElementChild; const a = r.querySelector('.s-deb').value, b = slotFin(r); return a && b ? a + '-' + b : S.settings.creneau; })() : S.settings.creneau; if (!n && !document.querySelector('.srow-h')) ed.insertAdjacentHTML('beforebegin', '<div class="srow srow-h small muted" aria-hidden="true"><span>Jour</span><span>Début</span><span>Durée</span><span>Fin (calculée)</span><span></span></div>'); ed.insertAdjacentHTML('beforeend', slotRow({ date: lastDate ? C.addDays(lastDate, 1) : today(), h: lastH }, n)); },
   slotdel: (ds, el) => el.closest('.srow').remove(),
   realtoday: () => { $('#e-real').value = today(); },
   edsave: async () => {
@@ -3808,7 +3809,7 @@ document.addEventListener('input', (e) => {
     if (el.id === 'rc-perzep' && RC.lines.length) { RC.perZep = el.checked; buildUnits(); proposeAll(); renderRc(); }
     if (el.id === 'rc-year' && RC.lines.length) { RC.year = +el.value; RC.lines.forEach((l) => (l.year = RC.year)); buildUnits(); proposeAll(); renderRc(); }
   }
-  if (el.closest && el.closest('.srow')) { const r = el.closest('.srow'); const a = fromHHMM(r.querySelector('.s-deb').value), b = fromHHMM(r.querySelector('.s-fin').value); r.querySelector('.s-dur').textContent = a !== null && b !== null ? fmtDur((b - a + 1440) % 1440) : ''; }
+  if (el.closest && el.closest('.srow')) { const r = el.closest('.srow'); const f = r.querySelector('.s-fin'); if (f) f.textContent = slotFin(r) || '—'; }
   if (el.dataset.actInput === 'stq') { clearTimeout(qTimer); qTimer = setTimeout(() => { S.ui.st.q = el.value; render(); }, 180); }
   if (el.dataset.actInput === 'equipq') { clearTimeout(qTimer); qTimer = setTimeout(() => { S.ui.equipQ = el.value; render(); }, 180); }
 });
