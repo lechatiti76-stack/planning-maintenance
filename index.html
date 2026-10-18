@@ -3052,15 +3052,16 @@ async function saveFile(filename, data) {
   try { await DL.save({ filename, data }); return true; } catch (e) { if (e && e.code !== 'declined') toast('Téléchargement impossible (' + (e.code || 'erreur') + ').', 'err'); return false; }
 }
 const hexRgb = (h, mix = 0) => { const n = parseInt(String(h).replace('#', ''), 16); const c = [(n >> 16) & 255, (n >> 8) & 255, n & 255]; return c.map((v) => Math.round(v + (255 - v) * mix)); };
-function pdfDoc(title, sub) {
-  const doc = new window.jspdf.jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+function pdfDoc(title, sub, format = 'a4') {
+  const doc = new window.jspdf.jsPDF({ orientation: 'landscape', unit: 'mm', format });
   doc.setFont('helvetica', 'bold'); doc.setFontSize(15); doc.setTextColor(14, 27, 54); doc.text(title, 10, 13);
   doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(80, 90, 105); doc.text(sub, 10, 19);
   return doc;
 }
 function pdfFooter(doc) {
   const n = doc.getNumberOfPages();
-  for (let i = 1; i <= n; i++) { doc.setPage(i); doc.setFontSize(7.5); doc.setTextColor(130); doc.text(`Planning Maintenance ${S.settings.site} · édité le ${fmtD(today())}`, 10, 203); doc.text(`page ${i} / ${n}`, 287, 203, { align: 'right' }); }
+  const pw = doc.internal.pageSize.getWidth(), ph = doc.internal.pageSize.getHeight();
+  for (let i = 1; i <= n; i++) { doc.setPage(i); doc.setFontSize(7.5); doc.setTextColor(130); doc.text(`Planning Maintenance ${S.settings.site} · édité le ${fmtD(today())}`, 10, ph - 7); doc.text(`page ${i} / ${n}`, pw - 10, ph - 7, { align: 'right' }); }
 }
 const tableStyle = { styles: { fontSize: 7.4, cellPadding: 1.4, lineColor: [205, 212, 222], lineWidth: 0.1, textColor: [20, 26, 38], valign: 'middle' }, headStyles: { fillColor: [14, 27, 54], textColor: 255, fontStyle: 'bold' }, margin: { left: 8, right: 8, bottom: 12 } };
 const stTxt = (t) => STM[stOf(t)][0];
@@ -3077,36 +3078,46 @@ function paintRow(d, t, dayFrom, dayTo) {
   }
 }
 function pdfLegend(doc, types, y) {
-  let x = 10; doc.setFontSize(7.5);
-  for (const id of types) { const t = typeOf(id); const w = doc.getTextWidth(t.label) + 9; if (x + w > 287) { x = 10; y += 5; } doc.setFillColor(...hexRgb(t.color, 0.87)); doc.setDrawColor(...hexRgb(t.color)); doc.rect(x, y - 3, w, 4.4, 'FD'); doc.setTextColor(...darkRgb(t.color)); doc.text(t.label, x + 4.5, y); x += w + 3; }
+  let x = 10; doc.setFontSize(7.5); const maxX = doc.internal.pageSize.getWidth() - 10;
+  for (const id of types) { const t = typeOf(id); const w = doc.getTextWidth(t.label) + 9; if (x + w > maxX) { x = 10; y += 5; } doc.setFillColor(...hexRgb(t.color, 0.87)); doc.setDrawColor(...hexRgb(t.color)); doc.rect(x, y - 3, w, 4.4, 'FD'); doc.setTextColor(...darkRgb(t.color)); doc.text(t.label, x + 4.5, y); x += w + 3; }
   doc.setTextColor(20, 26, 38); return y + 4;
 }
 async function pdfWeek() {
   if (!window.jspdf) { toast('Le module PDF n’a pas pu se charger.', 'err'); return; }
   const W = weekData(); const { days, prog, toProg } = W;
-  const doc = pdfDoc(`TRAVAUX - S${S.ui.wk} ${S.ui.wy}`, `Du ${fmtLong(W.mon)} au ${fmtLong(days[days.length - 1])} - ${S.settings.site} - ${prog.length} interventions planifiées, ${toProg.length} demandes à planifier`);
   const types = [...new Set([...prog, ...toProg].map((t) => t.type))].sort((a, b) => typeRank(a) - typeRank(b));
-  const y0 = types.length ? pdfLegend(doc, types, 25) : 23;
-  const dayCols = days.map((d) => `${JOURS[dow(d)]}\n${fmtDM(d)}`);
-  const body = []; const meta = []; let lastF = null; const nCols = 8 + days.length;
-  for (const t of prog) {
-    const f = t.prog?.faisceau || 'Sans faisceau';
-    if (f !== lastF) { body.push([{ content: f, colSpan: nCols, styles: { fillColor: [222, 228, 238], textColor: [14, 27, 54], fontStyle: 'bold' } }]); meta.push(null); lastF = f; }
-    body.push([typeOf(t.type).label, t.prog?.zone || '', equipLabel(t), t.designation + (t.description ? `\n${t.description}` : ''), t.ordre || t.code || '', ...days.map((d) => slotsOn(t, d).map((s) => s.h || 'journée').join('\n')), t.prog?.consign || '', (demOf(t) || {}).demandeur || '', impactOf(t)]);
-    meta.push(t);
-  }
-  if (!body.length) body.push([{ content: 'Aucun travail planifié cette semaine.', colSpan: nCols }]);
-  doc.autoTable({ ...tableStyle, startY: y0 + 1, head: [['Famille', 'Zone', 'Appareil', 'Nature des travaux', 'Ordre / code', ...dayCols, 'Consign.', 'Demandeur', 'Impact']], body,
-    columnStyles: { 0: { cellWidth: 21 }, 1: { cellWidth: 15 }, 2: { cellWidth: 20 }, 3: { cellWidth: 'auto' }, 4: { cellWidth: 17 }, [5 + days.length]: { cellWidth: 12, halign: 'center' }, [6 + days.length]: { cellWidth: 17 }, [7 + days.length]: { cellWidth: 46, fontSize: 6.8 } },
-    didParseCell: (d) => { if (d.section !== 'body') return; const t = meta[d.row.index]; if (t) paintRow(d, t, 5, 5 + days.length); } });
-  if (toProg.length) {
-    doc.autoTable({ ...tableStyle, startY: doc.lastAutoTable.finalY + 7, head: [['Demandes à planifier', 'Zone', 'Appareil', 'Nature des travaux', 'Demandeur', 'Reçue le', 'Période demandée', 'Échéance GMAO', 'Impact']],
-      body: toProg.map((t) => [typeOf(t.type).label, (demOf(t) || {}).zone || '', equipLabel(t), t.designation + (t.description ? ` - ${t.description}` : ''), (demOf(t) || {}).demandeur || '', fmtD((demOf(t) || {}).recue), periodTxt(t).replace(' au ', ' - '), fmtD(t.fin), impactOf(t)]),
-      headStyles: { ...tableStyle.headStyles, fillColor: [91, 33, 182] }, columnStyles: { 8: { cellWidth: 52, fontSize: 6.8 } },
-      didParseCell: (d) => { if (d.section !== 'body') return; const t = toProg[d.row.index]; if (t) paintRow(d, t); } });
-  }
+  const dayCols = days.map((d) => `${JOURS[dow(d)]}\n${fmtDM(d)}`); const nD = days.length;
+  const dDem = (t) => (t.prog && t.prog.dDem) || (demOf(t) || {}).recue || null;
+  const rows = prog.map((t) => [typeOf(t.type).label, zoneTxt({ zone: t.prog?.zone || '' }), equipLabel(t), t.designation + (t.description ? `\n${t.description}` : ''), t.ordre || t.code || '', ...days.map((d) => slotsOn(t, d).map((s) => s.h || 'journée').join('\n')), t.prog?.consign || '', (demOf(t) || {}).demandeur || '', fmtD8(dDem(t)), fmtD8(t.prog?.dVal), impactOf(t)]);
+  const iImp = 9 + nD, iC = 5 + nD;
+  function fmtD8(d) { return d ? `${d.slice(8, 10)}/${d.slice(5, 7)}/${d.slice(2, 4)}` : ''; }
+  // Tout doit tenir sur une feuille A3 : on réduit la police jusqu'à ce que le tableau tienne sur une page.
+  const draw = (fs) => {
+    const doc = pdfDoc(`TRAVAUX - S${S.ui.wk} ${S.ui.wy}`, `Du ${fmtLong(W.mon)} au ${fmtLong(days[nD - 1])} - ${S.settings.site} - ${prog.length} interventions planifiées, ${toProg.length} demandes à planifier`, 'a3');
+    const y0 = types.length ? pdfLegend(doc, types, 25) : 23;
+    const st = { ...tableStyle, styles: { ...tableStyle.styles, fontSize: fs, cellPadding: Math.max(1, fs * 0.22) }, headStyles: { ...tableStyle.headStyles, fontSize: Math.max(6, fs - 0.5) }, margin: { left: 8, right: 8, bottom: 14 } };
+    const big = fs + 1.5;
+    doc.autoTable({ ...st, startY: y0 + 1, head: [['Famille', 'Zone', 'Appareil', 'Nature des travaux', 'Ordre / code', ...dayCols, 'Consign.\ncaténaire', 'Demandeur', 'Date\ndemande', 'Date\nvalidation', 'Impact']],
+      body: rows.length ? rows : [[{ content: 'Aucun travail planifié cette semaine.', colSpan: 10 + nD }]],
+      columnStyles: { 0: { cellWidth: 22 }, 1: { cellWidth: 21 }, 2: { cellWidth: 28 }, 3: { cellWidth: 'auto' }, 4: { cellWidth: 22 }, ...Object.fromEntries(days.map((_, k) => [5 + k, { cellWidth: nD > 6 ? 17 : 19 }])), [iC]: { cellWidth: 18, halign: 'center' }, [iC + 1]: { cellWidth: 22 }, [iC + 2]: { cellWidth: 19, halign: 'center' }, [iC + 3]: { cellWidth: 19, halign: 'center' }, [iImp]: { cellWidth: 66 } },
+      didParseCell: (d) => {
+        if (d.section !== 'body') return; const t = prog[d.row.index]; if (!t) return; paintRow(d, t, 5, 5 + nD);
+        if (d.column.index >= 5 && d.column.index < 5 + nD && d.cell.raw) d.cell.styles.fontSize = big;
+        if (d.column.index === iImp) { d.cell.styles.fontStyle = 'bold'; d.cell.styles.fontSize = big; d.cell.styles.textColor = [20, 26, 38]; }
+        if (d.column.index === iC && /oui/i.test(String(d.cell.raw))) { d.cell.styles.fontStyle = 'bold'; d.cell.styles.textColor = [185, 28, 28]; }
+      } });
+    if (toProg.length) {
+      doc.autoTable({ ...st, startY: doc.lastAutoTable.finalY + 6, head: [['Demandes à planifier', 'Zone', 'Appareil', 'Nature des travaux', 'Demandeur', 'Reçue le', 'Période demandée', 'Échéance GMAO', 'Impact']],
+        body: toProg.map((t) => [typeOf(t.type).label, (demOf(t) || {}).zone || '', equipLabel(t), t.designation + (t.description ? ` - ${t.description}` : ''), (demOf(t) || {}).demandeur || '', fmtD((demOf(t) || {}).recue), periodTxt(t).replace(' au ', ' - '), fmtD(t.fin), impactOf(t)]),
+        headStyles: { ...st.headStyles, fillColor: [91, 33, 182] }, columnStyles: { 8: { cellWidth: 90 } },
+        didParseCell: (d) => { if (d.section !== 'body') return; const t = toProg[d.row.index]; if (!t) return; paintRow(d, t); if (d.column.index === 8) { d.cell.styles.fontStyle = 'bold'; d.cell.styles.textColor = [20, 26, 38]; } } });
+    }
+    return doc;
+  };
+  let doc = null;
+  for (const fs of [9.5, 9, 8.5, 8, 7.5, 7, 6.5, 6, 5.5, 5]) { doc = draw(fs); if (doc.getNumberOfPages() === 1) break; }
   pdfFooter(doc);
-  await saveFile(`Travaux_S${C.pad(S.ui.wk)}_${S.ui.wy}.pdf`, doc.output('arraybuffer'));
+  await saveFile(`Travaux_S${C.pad(S.ui.wk)}_${S.ui.wy}_A3.pdf`, doc.output('arraybuffer'));
 }
 async function pdfMonth() {
   if (!window.jspdf) { toast('Le module PDF n’a pas pu se charger.', 'err'); return; }
