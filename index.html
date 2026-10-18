@@ -586,6 +586,16 @@ body { background: var(--bg-art, none), var(--bg); background-attachment: fixed;
 @media (max-width: 600px) { .dock-in { margin-bottom: 6px; padding: 5px; border-radius: 16px; } .dock-b { min-width: 58px; font-size: .66rem; padding: 4px 3px; } .dock-b .dock-ic { width: 32px; height: 28px; } }
 @media print { .dock { display: none !important; } }
 @media (max-width: 600px) { .band .btn-inst, .band .btn-new { display: none; } }
+
+/* choix des coupures caténaire (CMM) */
+.cmm-pick { grid-column: 1 / -1; display: flex; flex-direction: column; gap: 6px; padding: 10px; border: 1px dashed color-mix(in srgb, var(--warn) 60%, transparent); border-radius: 10px; background: color-mix(in srgb, var(--warn-bg) 60%, transparent); }
+.cmm-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: 6px; }
+.cmm-it { display: grid; grid-template-columns: auto auto 1fr; gap: 4px 8px; align-items: start; padding: 6px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-2); cursor: pointer; font-size: .82rem; }
+.cmm-it input { margin-top: 2px; }
+.cmm-it b { white-space: nowrap; }
+.cmm-it span { color: var(--ink-2); }
+.cmm-it.on { border-color: var(--warn); background: var(--warn-bg); }
+.cmm-it.on span { color: var(--ink); }
 </style>
 
 </head>
@@ -1631,9 +1641,9 @@ function openPlanner(id, focus) {
       ${d.comment ? `<dt>Contraintes</dt><dd>${esc(d.comment)}</dd>` : ''}${t.prog && t.prog.date ? `<dt>Déjà planifié</dt><dd class="mono">${fmtD(t.prog.date)} ${esc((t.prog.slots || [])[0]?.h || '')}</dd>` : ''}</dl>
     <div class="form-grid">
       <label class="field"><span>Zone (ZEP)</span>${zoneSelect('p-zo', t.prog?.zone || d.zone || '')}</label>
-      <label class="field"><span>Faisceau</span><select id="p-fa">${optList(S.settings.refs.faisceaux, t.prog?.faisceau || d.faisceau || (S.settings.refs.zonesFaisceau || {})[t.prog?.zone || d.zone] || '', '—')}</select></label>
-      <label class="field"><span>Consignation électrique</span><select id="p-co">${optList([['', '—'], ['NON', 'NON'], ['OUI', 'OUI']], t.prog?.consign || d.consign || '')}</select></label>
+      <label class="field"><span>Consignation caténaire</span><select id="p-co">${optList([['', '—'], ['NON', 'NON'], ['OUI', 'OUI']], t.prog?.consign || d.consign || '')}</select></label>
       <label class="field"><span>Validation AC le</span><input type="date" id="p-va" value="${esc(t.prog?.dVal || '')}"></label>
+      ${cmmPicker('p-cmm', cmmOf(t), (t.prog?.consign || d.consign || '') === 'OUI')}
     </div>
     <div class="tablewrap"><table class="planner"><thead><tr><th>Jour</th>${crs.map((cr) => `<th>${esc(cr.label)}<br><span class="mono small">${esc(cr.h)}</span></th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>
     <div class="legend"><span><i style="background:var(--ok-bg);border:1px solid var(--ok)"></i>libre</span><span><i style="background:var(--warn-bg);border:1px solid var(--warn)"></i>presque complet ou même zone</span><span><i style="background:var(--bad-bg);border:1px solid var(--bad)"></i>complet ou indisponible</span><span class="muted">Survolez une case pour voir ce qui est déjà planifié</span></div>
@@ -1647,7 +1657,7 @@ async function planTask(id, d, h) {
   const ci = cellInfo(t, d, { h, cap: 99 });
   if (t.prog && t.prog.date && t.prog.date !== d) t.reports = [...(t.reports || []), { le: today(), ancien: t.prog.date, nouveau: d }];
   const v = (x) => { const el = document.getElementById(x); return el ? el.value.trim() : ''; };
-  t.prog = { ...(t.prog || {}), date: d, slots: [{ date: d, h }], faisceau: v('p-fa'), zone: zoneVal('p-zo'), consign: v('p-co'), dVal: v('p-va') || (t.prog && t.prog.dVal) || null, demandeur: dm.demandeur || '', dDem: dm.recue || null, comment: (t.prog && t.prog.comment) || dm.comment || '', planifieLe: (t.prog && t.prog.planifieLe && t.prog.date === d) ? t.prog.planifieLe : today() };
+  t.prog = { ...(t.prog || {}), date: d, slots: [{ date: d, h }], faisceau: (S.settings.refs.zonesFaisceau || {})[zoneVal('p-zo')] || (t.prog && t.prog.faisceau) || '', zone: zoneVal('p-zo'), consign: v('p-co'), cmm: v('p-co') === 'OUI' ? cmmVal('p-cmm') : [], dVal: v('p-va') || (t.prog && t.prog.dVal) || null, demandeur: dm.demandeur || '', dDem: dm.recue || null, comment: (t.prog && t.prog.comment) || dm.comment || '', planifieLe: (t.prog && t.prog.planifieLe && t.prog.date === d) ? t.prog.planifieLe : today() };
   t.aReprog = false;
   const grp = dm.grp; const sibs = grp ? [...S.tasks.values()].filter((x) => x.id !== t.id && x.dem && x.dem.grp === grp && !(x.real && x.real.date)).map((x) => { const c = clone(x); c.prog = { ...t.prog }; c.aReprog = false; return c; }) : [];
   closeModal(); await store.saveTasks([t, ...sibs]);
@@ -1750,14 +1760,12 @@ function openDemand(id) {
     <fieldset class="sec"><legend>2 · Demande</legend><div class="form-grid">
       <label class="field"><span>Demandée le</span><input type="date" id="d-recue" value="${esc(d.recue || T)}"></label>
       <label class="field"><span>Demandeur</span>${pickSelect('d-dem', demList, d.demandeur || '')}</label>
-      <label class="field"><span>N° de demande</span><input id="d-ref" value="${esc(d.ref || '')}"></label>
-      <label class="field"><span>Période souhaitée du</span><input type="date" id="d-du" value="${esc(d.du || (t && t.debut && t.debut > T ? t.debut : ''))}"></label>
-      <label class="field"><span>au</span><input type="date" id="d-au" value="${esc(d.au || (t && t.fin && t.fin > T ? t.fin : ''))}"></label>
+      <label class="field"><span>Date souhaitée</span><input type="date" id="d-du" value="${esc(d.du || '')}"></label>
     </div></fieldset>
     <fieldset class="sec"><legend>3 · Où</legend><div class="form-grid">
       <label class="field"><span>Zone (ZEP)</span>${zoneSelect('d-zo', d.zone || '')}</label>
-      <label class="field"><span>Faisceau</span><select id="d-fa">${optList(R.faisceaux, d.faisceau || '', '—')}</select></label>
-      <label class="field"><span>Consignation électrique</span><select id="d-co">${optList([['NON', 'NON'], ['OUI', 'OUI']], d.consign || '', '—')}</select></label>
+      <label class="field"><span>Consignation caténaire</span><select id="d-co">${optList([['NON', 'NON'], ['OUI', 'OUI']], d.consign || '', '—')}</select></label>
+      ${cmmPicker('d-cmm', d.cmm || [], (d.consign || '') === 'OUI')}
       <label class="field wide"><span>Contraintes, accès interdits</span><input id="d-com" list="dl-dco" value="${esc(d.comment || '')}"></label>
     </div></fieldset>
     <fieldset class="sec"><legend>4 · Plage travaux</legend><div class="stack">
@@ -1815,20 +1823,18 @@ function applySuggest() {
   const sg = suggestFor(DEML, fake, type, DF.nature);
   if (catKey(DF.cat) === 'CATENAIRE' && a0) {
     const n = (a0.equip.match(/\d+/) || [])[0]; const z = (FORM().zones || []).find((x) => x.zone === a0.equip || (n && x.zone === 'CMM ' + n));
-    if (z) { sg.zone = z.zone; sg.consign = 'OUI'; }
+    if (z) { sg.zone = z.zone; sg.consign = 'OUI'; const cb = document.querySelector(`#d-cmm .cmm-cb[value="${CSS.escape(z.zone)}"]`); if (cb && !cmmVal('d-cmm').length) { cb.checked = true; cb.closest('.cmm-it').classList.add('on'); } }
   }
   if (sg.zone) { const zel = $('#d-zo'); if (!zoneVal('d-zo') || zel.classList.contains('auto')) { setZone('d-zo', sg.zone); zel.classList.add('auto'); } }
   zoneChanged(true);
-  if (sg.faisceau) setAuto('d-fa', sg.faisceau);
   setAuto('d-dem', sg.demandeur); setAuto('d-co', sg.consign);
+  { const box = $('#d-cmm'); if (box) box.hidden = $('#d-co').value !== 'OUI'; }
   if (sg.deb) { setAuto('d-deb', sg.deb); setAuto('d-dur', sg.duree); setAuto('d-fin', sg.fin); }
   const last = $('#d-last'); if (last) last.innerHTML = sg.deb && sg.fin ? `<button type="button" class="btn sm" data-act="dslot" data-h="${esc(sg.deb + '-' + sg.fin)}">Habituel ${esc(sg.deb)}-${esc(sg.fin)}</button>` : '';
 }
 function zoneChanged(fromAuto) {
   const z = zoneVal('d-zo'); if (!z) return;
   const zf = S.settings.refs.zonesFaisceau || {}; const hist = DEML && DEML.byZone.get(C.norm(z));
-  const fa = zf[z] || lastOf(hist, 'faisceau');
-  if (fa) setAuto('d-fa', fa);
   const row = (FORM().zones || []).find((x) => x.zone === z);
   const com = $('#d-com');
   if (row && row.contrainte && (!com.value || com.classList.contains('auto'))) { com.value = row.contrainte; com.classList.add('auto'); }
@@ -1848,7 +1854,7 @@ function demCheck() {
   const crBtn = $('#d-btn-cr'); if (crBtn) crBtn.hidden = !!date;
   if (!date) { box.className = 'check'; box.innerHTML = deb && fin ? `Plage demandée ${esc(deb)}-${esc(fin)} (${fmtDur((fromHHMM(fin) - fromHHMM(deb) + 1440) % 1440)}). Sans date, la demande attend d’être planifiée.` : 'Sans date programmée, la demande part dans « Demandes à planifier ».'; return; }
   const h = deb && fin ? `${deb}-${fin}` : '';
-  const zone = zoneVal('d-zo'), fais = $('#d-fa').value;
+  const zone = zoneVal('d-zo'), fais = (S.settings.refs.zonesFaisceau || {})[zone] || '';
   const ids = DF.apps.map((a) => a.link).filter(Boolean);
   const fake = { id: '__new', prog: { zone, faisceau: fais }, dem: { zone } };
   const ci = cellInfo(fake, date, { h, cap: Math.max(...S.settings.creneauxStd.map((c) => +c.cap || 1)) });
@@ -1857,8 +1863,8 @@ function demCheck() {
   if (ci.ind.length) { up('bad'); msgs.push('Indisponible : ' + ci.ind.map((i) => i.motif + (i.zone ? ' (' + i.zone + ')' : '')).join(' · ')); }
   if (ci.conflicts.length) { up('warn'); msgs.push('Même zone déjà occupée : ' + ci.conflicts.map((x) => equipLabel(x.t) + ' ' + (x.s.h || '')).join(', ')); }
   if (ci.load.length) msgs.push(`${ci.load.length} autre${ci.load.length > 1 ? 's' : ''} intervention${ci.load.length > 1 ? 's' : ''} sur cette plage : ` + ci.load.map((x) => equipLabel(x.t) + ' ' + (x.s.h || '') + (x.t.prog?.zone ? ' (' + x.t.prog.zone + ')' : '')).join(', '));
-  const du = $('#d-du').value, au = $('#d-au').value;
-  if ((du && date < du) || (au && date > au)) { up('warn'); msgs.push('Hors de la période souhaitée par le demandeur.'); }
+  const du = $('#d-du').value;
+  if (du && date !== du) { up('warn'); msgs.push(`Différent de la date souhaitée par le demandeur (${fmtD(du)}).`); }
   if (t && t.fin && date > t.fin) { up('warn'); msgs.push(`Après l’échéance GMAO du ${fmtD(t.fin)} (+${C.diffDays(date, t.fin)} j).`); }
   if (dow(date) >= 5) msgs.push(`C’est un ${JOURS[dow(date)].toLowerCase()}.`);
   if (!msgs.length) msgs.push(`${fmtLong(date)}${h ? ', ' + h : ''} : plage libre.`);
@@ -1874,7 +1880,7 @@ async function saveDemand(andPlan) {
   const apps = DF.apps.length ? DF.apps : [{ equip: '', link: '' }];
   const deb = v('d-deb'), fin = v('d-fin'), dur = deb && fin ? (fromHHMM(fin) - fromHHMM(deb) + 1440) % 1440 : (+v('d-dur') || null);
   const grp = 'g' + Date.now().toString(36);
-  const dem = { recue: v('d-recue') || today(), demandeur: pv('d-dem'), ref: v('d-ref'), du: v('d-du') || null, au: v('d-au') || null, faisceau: v('d-fa'), zone: zoneVal('d-zo'), consign: v('d-co'), comment: v('d-com'), hDeb: deb, hFin: fin, duree: dur, categorie: cat ? cat.nom : '', grp: apps.length > 1 ? grp : '' };
+  const dem = { recue: v('d-recue') || today(), demandeur: pv('d-dem'), du: v('d-du') || null, au: v('d-du') || null, faisceau: (S.settings.refs.zonesFaisceau || {})[zoneVal('d-zo')] || '', zone: zoneVal('d-zo'), consign: v('d-co'), cmm: v('d-co') === 'OUI' ? cmmVal('d-cmm') : [], comment: v('d-com'), hDeb: deb, hFin: fin, duree: dur, categorie: cat ? cat.nom : '', grp: apps.length > 1 ? grp : '' };
   if (dem.du && dem.au && dem.au < dem.du) { toast('La fin de la période souhaitée est avant son début.', 'err'); return; }
   const date = v('d-date'); const type = catType(cat, nature);
   const tmp = new Map(S.tasks); const out = [];
@@ -1884,7 +1890,7 @@ async function saveDemand(andPlan) {
     else t = C.makeTask(tmp, { type, designation: nature, equip: a.equip, code: v('d-code') || (cat ? cat.code : ''), dem }, 'demande');
     if (a.wagons && a.wagons.length) { t.dem = { ...t.dem, wagons: a.wagons, detail: `${a.wagons.length} wagon${a.wagons.length > 1 ? 's' : ''} : ${a.wagons.join(', ')}` }; t.description = a.wagons.join(', '); }
     if (catKey(DF.cat) === 'CATENAIRE' && apps.length > 1) { const n = (a.equip.match(/\d+/) || [])[0]; const z = (FORM().zones || []).find((x) => x.zone === a.equip || (n && x.zone === 'CMM ' + n)); if (z) t.dem = { ...t.dem, zone: z.zone, comment: z.contrainte || t.dem.comment }; }
-    if (date) { t.prog = { date, slots: [{ date, h: deb && fin ? `${deb}-${fin}` : '' }], faisceau: dem.faisceau, zone: t.dem.zone, consign: dem.consign, demandeur: dem.demandeur, dDem: dem.recue, dVal: null, comment: t.dem.comment, planifieLe: today(), duree: dur }; t.aReprog = false; }
+    if (date) { t.prog = { date, slots: [{ date, h: deb && fin ? `${deb}-${fin}` : '' }], faisceau: dem.faisceau, zone: t.dem.zone, consign: dem.consign, cmm: dem.cmm, demandeur: dem.demandeur, dDem: dem.recue, dVal: null, comment: t.dem.comment, planifieLe: today(), duree: dur }; t.aReprog = false; }
     out.push(t);
   }
   closeModal(); await store.saveTasks(out);
@@ -2960,9 +2966,10 @@ function openEditor(id, preset) {
       <div class="row"><button type="button" class="btn sm" data-act="slotadd">+ Ajouter un jour</button>${id ? `<button type="button" class="btn sm" data-act="edplan">Voir les créneaux disponibles</button>` : ''}${slots.length ? '' : '<span class="muted small">Pas encore planifiée</span>'}</div>
       <div class="form-grid">
         <label class="field"><span>Zone (ZEP)</span>${zoneSelect('e-zone', p.zone || '')}</label>
-        <label class="field"><span>Consignation électrique</span><select id="e-consign">${optList([['', '—'], ['NON', 'NON'], ['OUI', 'OUI']], p.consign || '')}</select></label>
+        <label class="field"><span>Consignation caténaire</span><select id="e-consign">${optList([['', '—'], ['NON', 'NON'], ['OUI', 'OUI']], p.consign || '')}</select></label>
         <label class="field"><span>Date de validation AC</span><input type="date" id="e-dVal" value="${esc(p.dVal || '')}"></label>
-        <label class="field wide"><span>Commentaire de planification</span><input id="e-pcomment" list="dl-co" value="${esc(p.comment || '')}"></label>
+        ${cmmPicker('e-cmm', cmmOf(t), (p.consign || '') === 'OUI')}
+        <label class="field wide"><span>Impact sur la voie (commentaire de planification)</span><input id="e-pcomment" list="dl-co" value="${esc(p.comment || '')}"></label>
         ${(t.reports || []).length ? `<p class="wide small muted">Replanifiée ${t.reports.length} fois : ${t.reports.map((r) => fmtD(r.ancien) + ' → ' + fmtD(r.nouveau)).join(', ')}</p>` : ''}
       </div></div></fieldset>
     <fieldset class="sec"><legend>Réalisation</legend><div class="form-grid">
@@ -2994,7 +3001,7 @@ function readEditor() {
   const dem = { ...old, recue: v('e-recue') || null, demandeur: v('e-demandeur'), du: dsou, au: dsou, comment: v('e-dcom') };
   t.dem = dem.recue || dem.demandeur || dem.du || dem.comment || dem.ref ? dem : null;
   const zn = zoneVal('e-zone');
-  const pf = { faisceau: (S.settings.refs.zonesFaisceau || {})[zn] || (t.prog && t.prog.faisceau) || '', zone: zn, consign: v('e-consign'), demandeur: dem.demandeur, dDem: dem.recue, dVal: v('e-dVal') || null, comment: v('e-pcomment') };
+  const pf = { faisceau: (S.settings.refs.zonesFaisceau || {})[zn] || (t.prog && t.prog.faisceau) || '', zone: zn, consign: v('e-consign'), cmm: v('e-consign') === 'OUI' ? cmmVal('e-cmm') : [], demandeur: dem.demandeur, dDem: dem.recue, dVal: v('e-dVal') || null, comment: v('e-pcomment') };
   const prevDate = t.prog && t.prog.date;
   t.prog = slots.length ? { ...(t.prog || {}), date: slots[0].date, slots, ...pf, planifieLe: (t.prog && t.prog.planifieLe && prevDate === slots[0].date) ? t.prog.planifieLe : today() } : null;
   if (prevDate && t.prog && prevDate !== t.prog.date) t.reports = [...(t.reports || []), { le: today(), ancien: prevDate, nouveau: t.prog.date }];
@@ -3066,7 +3073,26 @@ function pdfFooter(doc) {
 }
 const tableStyle = { styles: { fontSize: 7.4, cellPadding: 1.4, lineColor: [205, 212, 222], lineWidth: 0.1, textColor: [20, 26, 38], valign: 'middle' }, headStyles: { fillColor: [14, 27, 54], textColor: 255, fontStyle: 'bold' }, margin: { left: 8, right: 8, bottom: 12 } };
 const stTxt = (t) => STM[stOf(t)][0];
-const impactOf = (t) => String((t.prog && t.prog.comment) || (demOf(t) || {}).comment || t.note || '').replace(/\s+/g, ' ').trim();
+const cmmZones = () => (FORM().zones || []).filter((z) => /^(IA\s*)?CMM\b/i.test(z.zone));
+const cmmImpact = (z) => { const r = cmmZones().find((x) => x.zone === z); return r && r.contrainte ? r.contrainte : ''; };
+const cmmOf = (t) => { const p = t.prog || {}, d = demOf(t) || {}; const c = (p.consign || d.consign || '').toUpperCase(); if (c !== 'OUI') return []; const l = p.cmm || d.cmm; if (l && l.length) return l; const z = p.zone || d.zone || ''; return /^(IA\s*)?CMM\b/i.test(z) ? [z] : []; };
+const impactOf = (t) => {
+  const base = String((t.prog && t.prog.comment) || (demOf(t) || {}).comment || t.note || '').replace(/\s+/g, ' ').trim();
+  const cat = cmmOf(t).filter((z) => { const i = cmmImpact(z); return i && !base.includes(i); }).map((z) => `Caténaire ${z} : ${cmmImpact(z)}`);
+  return [base, ...cat].filter(Boolean).join(' — ');
+};
+function cmmPicker(id, sel, show) {
+  const list = cmmZones(); if (!list.length) return '';
+  return `<div class="cmm-pick wide" id="${id}" ${show ? '' : 'hidden'}><span class="small"><b>Coupure caténaire</b> : cochez la ou les CMM, leur impact s’ajoute à celui de la voie</span>
+    <div class="cmm-list">${list.map((z) => `<label class="cmm-it${(sel || []).includes(z.zone) ? ' on' : ''}"><input type="checkbox" class="cmm-cb" value="${esc(z.zone)}" ${(sel || []).includes(z.zone) ? 'checked' : ''}><b>${esc(z.zone)}</b><span>${esc(z.contrainte || '')}</span></label>`).join('')}</div></div>`;
+}
+const cmmVal = (id) => [...document.querySelectorAll(`#${id} .cmm-cb:checked`)].map((c) => c.value);
+const CMM_FOR = { 'd-co': 'd-cmm', 'e-consign': 'e-cmm', 'p-co': 'p-cmm' };
+document.addEventListener('change', (e) => {
+  const el = e.target; if (!el) return;
+  if (CMM_FOR[el.id]) { const box = document.getElementById(CMM_FOR[el.id]); if (box) box.hidden = el.value !== 'OUI'; }
+  if (el.classList && el.classList.contains('cmm-cb')) el.closest('.cmm-it').classList.toggle('on', el.checked);
+});
 const darkRgb = (h) => hexRgb(h).map((v) => Math.round(v * 0.62));
 function paintRow(d, t, dayFrom, dayTo) {
   const col = typeOf(t.type).color; const done = t.real && t.real.date;
@@ -3846,7 +3872,7 @@ function demFormInput(el) {
   if (el.id === 'd-deb') timeChanged('deb'); if (el.id === 'd-fin') timeChanged('fin'); if (el.id === 'd-dur') timeChanged('dur');
   demCheck();
 }
-document.addEventListener('change', (e) => { const el = e.target; if (el.dataset && el.dataset.zone && !el.closest('#demForm')) { const tx = document.getElementById(el.id + '-txt'); if (tx) tx.hidden = el.value !== '__autre'; if (el.id === 'p-zo') { const f = (S.settings.refs.zonesFaisceau || {})[el.value]; if (f) $('#p-fa').value = f; } } });
+document.addEventListener('change', (e) => { const el = e.target; if (el.dataset && el.dataset.zone && !el.closest('#demForm')) { const tx = document.getElementById(el.id + '-txt'); if (tx) tx.hidden = el.value !== '__autre';  } });
 document.addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.id === 'd-app-txt') { e.preventDefault(); const v = e.target.value.trim(); if (v) { addApp(v); e.target.value = ''; } return; } if (e.key === 'Escape' && $('#modalRoot').children.length) closeModal(); });
 ['dragover', 'dragleave', 'drop'].forEach((ev) => document.addEventListener(ev, (e) => {
   const d = e.target.closest && e.target.closest('#drop'); if (!d) return;
