@@ -627,6 +627,14 @@ button.hm-chip { cursor: pointer; font: inherit; color: var(--ink); transition: 
 button.hm-chip:hover { border-color: var(--c, var(--accent)); }
 button.hm-chip.on { border-color: var(--c, var(--accent)); background: color-mix(in srgb, var(--c, var(--accent)) 22%, var(--surface-2)); box-shadow: 0 0 0 2px color-mix(in srgb, var(--c, var(--accent)) 35%, transparent); }
 .hm-chip-all { font-weight: 600; }
+
+/* tableaux qui tiennent dans la fenêtre, sans barre de défilement latérale */
+table.t.fit { width: 100%; table-layout: auto; }
+table.t.fit th { white-space: normal; vertical-align: bottom; line-height: 1.25; }
+table.t.fit td { white-space: normal; }
+table.t.fit td.mono, table.t.fit td .mono { white-space: nowrap; }
+table.t.fit .op { display: block; font-size: .78rem; color: var(--ink-2); font-weight: 400; line-height: 1.25; margin-top: 1px; }
+.pill.wrap { white-space: normal; line-height: 1.25; display: inline-block; }
 </style>
 
 </head>
@@ -2649,12 +2657,12 @@ function viewStats() {
     <section class="panel"><div class="panel-h"><h2>Évolution · ${esc(lab)}</h2></div><div class="panel-b">${chartBars(bks, series)}</div></section>
     <section class="panel"><div class="panel-h"><h2>Par famille</h2><span class="right muted small">Cliquez une famille pour voir ses équipements</span></div><div class="tablewrap"><table class="t"><thead><tr><th>Famille</th><th class="r">Équipements</th><th class="r">Théorique</th><th class="r">Planifiés</th><th class="r">Réalisés</th><th class="r">Taux</th><th class="r">Conformes</th><th class="r">Trop courts</th><th class="r">Dépassés</th><th class="r">Écart moyen</th><th class="r">En dépassement</th></tr></thead><tbody>${fam || '<tr><td colspan="11" class="empty">Aucune donnée sur cette période.</td></tr>'}</tbody></table></div></section>`;
   } else if (st.sub === 'equip') {
-    const rows = ser.filter((x) => !st.verdict || (st.verdict === 'retard' ? x.state === 'depasse' : true)).map((x) => `<tr data-act="stdetail" data-k="${esc(x.key)}"><td>${plate(x.type)}</td><td class="equip">${esc(x.equip)}</td><td class="desig">${esc(x.designation)}</td><td class="r mono">${x.g ? esc(gammeTxt(x.g)) : '—'}</td><td class="r mono">${x.nReal} / ${x.nTheo}</td><td class="mono small">${fmtD(x.lastReal)}</td>
-      <td class="r mono">${x.avg === null ? '—' : x.avg + ' j'}</td><td class="r mono small">${x.min === null ? '' : x.min + '–' + x.max + ' j'}</td>
+    const rows = ser.filter((x) => !st.verdict || (st.verdict === 'retard' ? x.state === 'depasse' : true)).map((x) => `<tr data-act="stdetail" data-k="${esc(x.key)}"><td><span class="tcell">${plate(x.type)}<span><b>${esc(x.equip)}</b><small class="op">${esc(x.designation)}</small></span></span></td><td class="r mono">${x.g ? esc(gammeTxt(x.g)) : '—'}</td><td class="c mono">${x.nReal} / ${x.nTheo}</td><td class="mono small">${fmtD(x.lastReal)}</td>
+      <td class="r mono">${x.avg === null ? '—' : x.avg + ' j'}${x.min === null ? '' : `<small class="op">${x.min}–${x.max} j</small>`}</td>
       <td class="c">${x.cnt.ok ? `<span class="pill ok">${x.cnt.ok}</span>` : ''} ${x.cnt.court ? `<span class="pill info">${x.cnt.court}</span>` : ''} ${x.cnt.depasse ? `<span class="pill bad">${x.cnt.depasse}</span>` : ''}</td>
-      <td class="mono small">${fmtD(x.due)}</td><td><span class="pill ${x.state === 'depasse' ? 'bad' : x.state === 'bientot' ? 'warn' : x.state === 'ok' ? 'ok' : 'mute'}">${esc(x.stateTxt)}</span></td></tr>`).join('');
+      <td class="mono small">${fmtD(x.due)}</td><td><span class="pill wrap ${x.state === 'depasse' ? 'bad' : x.state === 'bientot' ? 'warn' : x.state === 'ok' ? 'ok' : 'mute'}">${esc(x.stateTxt)}</span></td></tr>`).join('');
     body = `<div class="row"><input type="search" id="stq" data-act-input="stq" placeholder="Rechercher un appareil (ex. ADV 5001)" value="${esc(st.q)}" style="max-width:320px"><label class="row small"><input type="checkbox" id="stLate" data-act-change="stlate" ${st.verdict === 'retard' ? 'checked' : ''}> Seulement les équipements en dépassement</label></div>
-      <section class="panel"><div class="tablewrap"><table class="t"><thead><tr><th></th><th>Appareil</th><th>Opération</th><th class="r">Périodicité</th><th class="r">Réalisés / théoriques</th><th>Dernier contrôle</th><th class="r">Intervalle moyen</th><th class="r">Min – max</th><th class="c">Conformes · courts · dépassés</th><th>Prochain contrôle dû</th><th>État aujourd’hui</th></tr></thead><tbody>${rows || '<tr><td colspan="11" class="empty">Aucun équipement.</td></tr>'}</tbody></table></div></section>
+      <section class="panel"><div class="tablewrap"><table class="t fit"><thead><tr><th>Appareil · opération</th><th class="r">Périodicité</th><th class="c">Réalisés / théo.</th><th>Dernier contrôle</th><th class="r">Intervalle moyen (min–max)</th><th class="c">Conformes · courts · dépassés</th><th>Prochain dû</th><th>État aujourd’hui</th></tr></thead><tbody>${rows || '<tr><td colspan="8" class="empty">Aucun équipement.</td></tr>'}</tbody></table></div></section>
       <p class="small muted">Prochain contrôle dû = dernier contrôle réalisé + périodicité de la gamme (sinon la prochaine échéance GMAO). Cliquez une ligne pour voir l’historique et l’intervalle entre chaque contrôle.</p>`;
   } else {
     const order = { depasse: 0, court: 1, ok: 2 };
