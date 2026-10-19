@@ -26,7 +26,7 @@
   --line-2: #e8ecf1;
   --ink: #101827;
   --ink-2: #485365;
-  --ink-3: #828da0;
+  --ink-3: #6b7588;
   --accent: #1d4ed8;
   --accent-soft: #e3ebfd;
   --accent-ink: #ffffff;
@@ -367,7 +367,7 @@ table.rc td { vertical-align: top; }
 .gr-sr { display: grid; grid-template-columns: 92px repeat(12, minmax(34px, 1fr)); gap: 4px; margin-bottom: 4px; min-width: 520px; }
 .gr-sh { font-size: .82rem; font-weight: 700; color: var(--ink-2); align-self: center; }
 .gr-sm { background: none; border: 0; font: 600 .78rem var(--font-b); color: var(--ink-2); cursor: pointer; padding: 2px 0; }
-.gr-sc { height: 28px; border: 0; border-radius: 6px; color: #fff; font-weight: 700; cursor: pointer; }
+.gr-sc { height: 28px; border: 0; border-radius: 6px; color: var(--surface); font-weight: 700; cursor: pointer; }
 .gr-sc.mute { color: var(--ink-3); }
 .gr-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 270px), 1fr)); gap: 12px; }
 .gr-card { background: var(--surface); border: 1px solid var(--line); border-top: 5px solid var(--mute-bg); border-radius: var(--r); padding: 10px 12px 12px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 8px; transition: box-shadow .3s; }
@@ -533,6 +533,31 @@ body.intro-active { overflow: hidden; }
 @media (prefers-reduced-motion: reduce) { .intro-splash, .intro-splash * { animation: none !important; transition: opacity .3s ease !important; } .intro-skip, .intro-sound { opacity: 1 !important; } }
 
 /* ---------- thèmes de fond (Paramètres › Apparence) ---------- */
+/* Chaque fond porte son jeu complet de couleurs : il ne dépend plus du réglage clair / sombre de l'affichage (ni de celui de claude.ai). */
+:root[data-fond="lhte"], :root[data-fond="poste"], :root[data-fond="signal"], :root[data-fond="photo"], :root[data-fond="sombre"] {
+  --bg: #0a1120; --surface: #111a2c; --surface-2: #16213a; --line: #26344f; --line-2: #1d2942;
+  --ink: #e8edf6; --ink-2: #aab5c8; --ink-3: #6f7d96;
+  --accent: #6c9cff; --accent-soft: #1b2b52; --accent-ink: #0a1120;
+  --band: #060c19; --band-2: #14213e; --band-ink: #e1e8f5; --band-ink-2: #8796b3;
+  --ok: #4ade80; --ok-bg: rgba(74, 222, 128, .14); --info: #7aa7ff; --info-bg: rgba(122, 167, 255, .15);
+  --warn: #fbbf24; --warn-bg: rgba(251, 191, 36, .14); --bad: #f87171; --bad-bg: rgba(248, 113, 113, .15);
+  --vio: #b69bff; --vio-bg: rgba(182, 155, 255, .15); --mute: #a3afc3; --mute-bg: rgba(163, 175, 195, .12);
+  --s-prevu: #5d6b84; --s-prog: #5b8cff; --s-real: #34c26f; --s-dem: #a78bfa; --or: #fb923c; --or-bg: rgba(251, 146, 60, .15);
+  --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 12px 28px -18px rgba(0, 0, 0, .7);
+  color-scheme: dark;
+}
+:root[data-fond="aurore"], :root[data-fond="clair"] {
+  --bg: #edf0f4; --surface: #ffffff; --surface-2: #f4f6f9; --line: #d8dee7; --line-2: #e8ecf1;
+  --ink: #101827; --ink-2: #485365; --ink-3: #6b7588;
+  --accent: #1d4ed8; --accent-soft: #e3ebfd; --accent-ink: #ffffff;
+  --band: #0e1b36; --band-2: #1a2b50; --band-ink: #e7edf8; --band-ink-2: #9fb0cf;
+  --ok: #15803d; --ok-bg: #dcf3e3; --info: #1d4ed8; --info-bg: #dfe8fc;
+  --warn: #a35a06; --warn-bg: #fdefd2; --bad: #b91c1c; --bad-bg: #fbe1e1;
+  --vio: #6d28d9; --vio-bg: #ece6fd; --mute: #5f6b7d; --mute-bg: #e9edf2;
+  --s-prevu: #9aa6b8; --s-prog: #2f6ae6; --s-real: #1f9d55; --s-dem: #8b5cf6; --or: #c2410c; --or-bg: #fde4d3;
+  --shadow: 0 1px 2px rgba(16, 24, 39, .06), 0 8px 24px -16px rgba(16, 24, 39, .28);
+  color-scheme: light;
+}
 body { background: var(--bg-art, none), var(--bg); background-attachment: fixed; }
 .band::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: linear-gradient(90deg, #22d3ee, #3b82f6, #818cf8, #fb923c, #f472b6); opacity: .9; }
 .btn-inst { background: rgba(255,255,255,.08); color: var(--band-ink); border: 1px solid rgba(255,255,255,.2); border-radius: 6px; padding: 7px 11px; font-weight: 600; cursor: pointer; white-space: nowrap; }
@@ -2718,9 +2743,9 @@ function viewYear() {
     if (!list || !list.length) return `<td class="z${isCur ? ' cur' : ''}" data-act="gotowk" data-w="${w}"></td>`;
     const sts = list.map((t) => stOf(t, T)); const n = list.length;
     let bg, fg = 'var(--ink)';
-    if (sts.some((s) => s === 'enRetard' || s === 'aReprogrammer' || s === 'aConfirmer')) { bg = 'var(--bad)'; fg = '#fff'; }
-    else if (sts.every((s) => s === 'realise')) { bg = 'var(--s-real)'; fg = '#fff'; }
-    else if (sts.every((s) => s === 'realise' || s === 'programme')) { bg = 'var(--s-prog)'; fg = '#fff'; }
+    if (sts.some((s) => s === 'enRetard' || s === 'aReprogrammer' || s === 'aConfirmer')) { bg = 'var(--bad)'; fg = 'var(--surface)'; }
+    else if (sts.every((s) => s === 'realise')) { bg = 'var(--s-real)'; fg = 'var(--surface)'; }
+    else if (sts.every((s) => s === 'realise' || s === 'programme')) { bg = 'var(--s-prog)'; fg = 'var(--surface)'; }
     else if (sts.some((s) => s === 'aProgrammer')) bg = 'var(--warn-bg)';
     else bg = `color-mix(in srgb, var(--s-prevu) ${Math.min(70, 18 + n * 8)}%, var(--surface))`;
     const done = sts.filter((s) => s === 'realise').length;
