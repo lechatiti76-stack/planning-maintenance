@@ -596,6 +596,12 @@ body { background: var(--bg-art, none), var(--bg); background-attachment: fixed;
 .cmm-it span { color: var(--ink-2); }
 .cmm-it.on { border-color: var(--warn); background: var(--warn-bg); }
 .cmm-it.on span { color: var(--ink); }
+
+/* filtres par famille (tuile Contrôles en retard) */
+button.hm-chip { cursor: pointer; font: inherit; color: var(--ink); transition: border-color .15s, background .15s; }
+button.hm-chip:hover { border-color: var(--c, var(--accent)); }
+button.hm-chip.on { border-color: var(--c, var(--accent)); background: color-mix(in srgb, var(--c, var(--accent)) 22%, var(--surface-2)); box-shadow: 0 0 0 2px color-mix(in srgb, var(--c, var(--accent)) 35%, transparent); }
+.hm-chip-all { font-weight: 600; }
 </style>
 
 </head>
@@ -3575,9 +3581,13 @@ function homePanel(k, D) {
   }
   if (k === 'retard') {
     const fam = {}; D.late.forEach((t) => { fam[t.type] = (fam[t.type] || 0) + 1; });
-    const chips = Object.entries(fam).sort((a, b) => b[1] - a[1]).map(([ty, n]) => `<span class="hm-chip">${plate(ty)}${esc(typeOf(ty).label)} <b>${n}</b></span>`).join('');
-    const rows = D.late.slice(0, 15).map((t) => `<tr><td class="mono small">${fmtD(t.fin)}</td><td class="r mono small" style="color:var(--bad)">${C.diffDays(D.T, t.fin)} j</td><td>${eq(t)}</td><td class="small">${esc(t.designation)}</td><td class="r nowrap"><button type="button" class="btn sm" data-act="edit" data-id="${t.id}">Saisir la réalisation</button> <button type="button" class="btn sm primary" data-act="plan" data-id="${t.id}">Planifier</button></td></tr>`);
-    return ph('Échéances GMAO passées sans réalisation', more(D.late.length, `Voir les ${D.late.length}`, 'data-act="hmtasks" data-k="enRetard"')) + `<div class="hm-chips">${chips}</div>` + tbl(['Échéance', '>Retard', 'Appareil', 'Nature', '>Action'], rows, 'Aucun retard.');
+    const f = fam[S.ui.hmFam] ? S.ui.hmFam : '';
+    const list = f ? D.late.filter((t) => t.type === f) : D.late; const lim = f ? 60 : 15;
+    const chips = `<button type="button" class="hm-chip hm-chip-all${f ? '' : ' on'}" data-act="hmfam" data-k="" title="Revenir à toutes les familles">↺ Tout <b>${D.late.length}</b></button>`
+      + Object.entries(fam).sort((a, b) => b[1] - a[1]).map(([ty, n]) => `<button type="button" class="hm-chip${f === ty ? ' on' : ''}" data-act="hmfam" data-k="${esc(ty)}" aria-pressed="${f === ty}" style="--c:${esc(typeOf(ty).color)}">${plate(ty)}${esc(typeOf(ty).label)} <b>${n}</b></button>`).join('');
+    const rows = list.slice(0, lim).map((t) => `<tr><td class="mono small">${fmtD(t.fin)}</td><td class="r mono small" style="color:var(--bad)">${C.diffDays(D.T, t.fin)} j</td><td>${eq(t)}</td><td class="small">${esc(t.designation)}</td><td class="r nowrap"><button type="button" class="btn sm" data-act="edit" data-id="${t.id}">Saisir la réalisation</button> <button type="button" class="btn sm primary" data-act="plan" data-id="${t.id}">Planifier</button></td></tr>`);
+    const title = f ? `${esc(typeOf(f).label)} : ${list.length} échéance${list.length > 1 ? 's' : ''} GMAO passée${list.length > 1 ? 's' : ''} sans réalisation` : 'Échéances GMAO passées sans réalisation';
+    return ph(title, `${f ? '<button type="button" class="btn sm" data-act="hmfam" data-k="">↺ Toutes les familles</button>' : ''}${more(list.length > lim, `Voir les ${list.length}`, `data-act="hmtasks" data-k="enRetard" data-f="${esc(f)}"`)}`) + `<div class="hm-chips">${chips}</div>` + tbl(['Échéance', '>Retard', 'Appareil', 'Nature', '>Action'], rows, 'Aucun retard.');
   }
   if (k === 'ecarts') {
     const rows = D.iv.slice(0, 20).map((r) => `<tr data-act="edit" data-id="${r.t.id}"><td><span class="tcell">${plate(r.x.type)}<b>${esc(r.x.name)}</b></span></td><td class="mono small">${fmtD(r.prev)}</td><td class="mono small"><b>${fmtD(r.real)}</b></td><td class="r mono">${r.days} j</td><td class="small muted">${fmtMois(r.days)} au lieu de ${fmtMois(r.x.per)}</td><td class="r"><span class="ecart ${r.verdict === 'depasse' ? 'grave' : 'avance'}">${signed(r.ecartPer)}</span></td><td><span class="pill ${VERD[r.verdict][1]}">${r.verdict === 'court' ? 'Trop rapproché' : 'Dépassé'}</span></td></tr>`);
@@ -3610,7 +3620,8 @@ Object.assign(ACT, {
   hmvalid: async () => { const n = C.isoWeek(C.addDays(today(), 7)); S.ui.pwy = n.year; S.ui.pwk = n.week; await progValidate(); render(); },
   hmpdf: () => { const n = C.isoWeek(C.addDays(today(), 7)); S.ui.pwy = n.year; S.ui.pwk = n.week; progPdf(); },
   hmmail: () => { const n = C.isoWeek(C.addDays(today(), 7)); S.ui.pwy = n.year; S.ui.pwk = n.week; openMail(); },
-  hmtasks: (ds) => { S.ui.filters = { ...S.ui.filters, statut: ds.k, q: '', type: '' }; S.ui.year = +today().slice(0, 4); go('tasks'); },
+  hmfam: (ds) => { S.ui.hmFam = ds.k || ''; render(); },
+  hmtasks: (ds) => { S.ui.filters = { ...S.ui.filters, statut: ds.k, q: '', type: ds.f || '' }; S.ui.year = +today().slice(0, 4); go('tasks'); },
   hmstats: () => { S.ui.st.sub = 'suivi'; S.ui.st.per = 'annee'; S.ui.st.y = +today().slice(0, 4); S.ui.st.pb = true; go('stats'); },
 });
 
