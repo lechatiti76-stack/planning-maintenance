@@ -641,6 +641,106 @@ table.t.fit .op { display: block; font-size: .78rem; color: var(--ink-2); font-w
 .mail-model { display: flex; flex-direction: column; gap: 4px; text-align: left; background: var(--surface-2); border: 2px solid var(--line); border-radius: 10px; padding: 8px 10px; cursor: pointer; color: var(--ink); }
 .mail-model.on { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
 .mail-mini { display: block; background: #fff; color: #1f2937; border-radius: 6px; padding: 6px; margin-top: 4px; zoom: .42; pointer-events: none; }
+
+/* planificateur : grille ZEP × jours */
+.bd { display: grid; grid-template-columns: minmax(250px, 300px) minmax(0, 1fr); gap: 14px; align-items: start; }
+@media (max-width: 900px) { .bd { grid-template-columns: minmax(0, 1fr); } }
+.bd-side { position: sticky; top: 112px; display: flex; flex-direction: column; max-height: calc(100vh - 200px); overflow: hidden; }
+@media (max-width: 900px) { .bd-side { position: static; max-height: 48vh; } }
+.bd-side.over { box-shadow: 0 0 0 3px var(--bad); }
+.bd-fams { display: flex; flex-wrap: wrap; gap: 5px; padding: 10px 12px 8px; }
+.bd-fam { --c: var(--accent); display: inline-flex; align-items: center; gap: 5px; border: 1px solid var(--line); background: var(--surface-2); border-radius: 999px; padding: 3px 9px; font-size: .78rem; font-weight: 600; cursor: pointer; color: var(--ink); }
+.bd-fam:hover { border-color: var(--c); }
+.bd-fam.on { border-color: var(--c); background: color-mix(in srgb, var(--c) 24%, var(--surface-2)); box-shadow: 0 0 0 2px color-mix(in srgb, var(--c) 30%, transparent); }
+.bd-fam b { font-family: var(--font-m); font-size: .72rem; color: var(--ink-2); }
+.bd-tools { display: flex; gap: 6px; padding: 0 12px 8px; }
+.bd-list { flex: 1; overflow-y: auto; padding: 4px 10px 10px; display: flex; flex-direction: column; gap: 6px; min-height: 120px; }
+.bd-unplan { display: none; padding: 9px; text-align: center; color: var(--bad); border-top: 1px dashed var(--bad); background: var(--bad-bg); font-weight: 600; }
+body.bd-dragging .bd-unplan { display: block; }
+.bd-card { --c: #64748b; position: relative; border: 1px solid var(--line); border-left: 5px solid var(--c); border-radius: 9px; background: var(--surface); padding: 7px 9px; cursor: grab; display: flex; flex-direction: column; gap: 2px; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; box-shadow: var(--shadow); flex: none; }
+.bd-card:hover { border-color: var(--c); }
+.bd-card:active { cursor: grabbing; }
+.bd-card.pick { outline: 3px solid var(--accent); outline-offset: 1px; background: var(--accent-soft); }
+.bd-card.dragging, .bd-chip.dragging { opacity: .35; }
+.bd-c1 { display: flex; align-items: center; gap: 6px; justify-content: space-between; }
+.bd-c1 b { font-size: .9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bd-c2 { font-size: .8rem; color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bd-c3 { font-size: .72rem; color: var(--ink-3); font-family: var(--font-m); display: flex; flex-wrap: wrap; gap: 2px 8px; }
+.bd-c3 .z { color: var(--accent); font-weight: 600; }
+.bd-main { min-width: 0; display: flex; flex-direction: column; gap: 12px; }
+.bd-sum { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)) minmax(180px, 2fr); gap: 8px; }
+@media (max-width: 1100px) { .bd-sum { grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); } .bd-fam-bar { grid-column: 1 / -1; } }
+.bd-k { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 8px 11px; display: flex; flex-direction: column; box-shadow: var(--shadow); }
+.bd-k b { font-size: 1.35rem; line-height: 1.1; font-weight: 700; }
+.bd-k span { font-size: .76rem; color: var(--ink-2); }
+.bd-k.warn b { color: var(--warn); } .bd-k.bad b { color: var(--bad); } .bd-k.ok b { color: var(--ok); }
+.bd-fam-bar { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 9px 11px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 6px; justify-content: center; }
+.bd-fbar { display: flex; height: 10px; border-radius: 999px; overflow: hidden; gap: 2px; background: var(--line-2); }
+.bd-fseg { display: block; height: 100%; min-width: 4px; }
+.bd-fleg { display: flex; flex-wrap: wrap; gap: 2px 10px; }
+.bd-weeks { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+.bd-wk { display: grid; grid-template-columns: auto 1fr auto; grid-template-rows: auto auto; gap: 2px 8px; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 8px 10px; cursor: pointer; color: var(--ink); text-align: left; box-shadow: var(--shadow); }
+.bd-wk:hover { border-color: var(--accent); }
+.bd-wk small { grid-column: 1 / -1; color: var(--ink-3); font-size: .72rem; }
+.bd-wbar { height: 8px; border-radius: 999px; background: var(--line-2); overflow: hidden; }
+.bd-wbar i { display: block; height: 100%; background: var(--accent); border-radius: 999px; }
+.bd-pickbar { position: sticky; top: 108px; z-index: 6; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; background: var(--band); color: var(--band-ink); border-radius: 10px; padding: 8px 12px; box-shadow: var(--shadow); }
+.bd-pickbar span { flex: 1; min-width: 200px; }
+.bd-pickbar .btn { background: var(--band-2); border-color: var(--band-2); color: var(--band-ink); }
+.bd-wrap { overflow: auto; max-height: calc(100vh - 250px); min-height: 320px; border-radius: var(--r); border: 1px solid var(--line); background: var(--surface); box-shadow: var(--shadow); }
+@media (max-width: 900px) { .bd-wrap { max-height: 75vh; } }
+table.bd-grid { border-collapse: separate; border-spacing: 0; width: 100%; font-size: .8rem; }
+.bd-grid th, .bd-grid td { border-right: 1px solid var(--line-2); border-bottom: 1px solid var(--line-2); }
+.bd-grid thead th { position: sticky; top: 0; z-index: 3; background: var(--surface-2); padding: 6px 6px 7px; text-align: left; font-weight: 600; vertical-align: bottom; }
+.bd-grid th.bd-zh { position: sticky; left: 0; z-index: 2; background: var(--surface-2); width: 132px; min-width: 112px; max-width: 150px; text-align: left; padding: 6px 8px; vertical-align: top; font-weight: 600; }
+.bd-grid thead th.bd-zh { z-index: 4; font-family: var(--font-d); font-size: .95rem; }
+.bd-grid thead th.bd-zh small { display: block; font-family: var(--font-m); font-size: .64rem; color: var(--ink-3); font-weight: 500; }
+.bd-zh b { font-family: var(--font-d); font-size: 1.02rem; display: flex; justify-content: space-between; align-items: center; gap: 4px; }
+.bd-zh small { font-weight: 400; color: var(--ink-3); font-size: .66rem; line-height: 1.2; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.bd-zn { font: 600 .68rem var(--font-m); background: var(--accent-soft); color: var(--accent); border-radius: 999px; padding: 0 6px; }
+.bd-dh { min-width: 132px; }
+.bd-dh .dn { display: block; font-family: var(--font-d); font-size: .95rem; white-space: nowrap; }
+.bd-dh.today .dn { color: var(--accent); }
+.bd-dh.today { box-shadow: inset 0 -3px 0 var(--accent); }
+.bd-meter { display: block; height: 5px; border-radius: 3px; background: var(--line-2); margin: 4px 0 2px; overflow: hidden; }
+.bd-meter i { display: block; height: 100%; border-radius: 3px; }
+.bd-dh small { display: block; color: var(--ink-3); font-weight: 500; font-family: var(--font-m); font-size: .68rem; white-space: nowrap; }
+.bd-dh .pill { margin-top: 3px; }
+td.bd-cell { vertical-align: top; padding: 4px; height: 50px; background: var(--surface); transition: background .12s, box-shadow .12s; }
+td.bd-cell.today { background: color-mix(in srgb, var(--accent) 5%, var(--surface)); }
+td.bd-cell.sun, th.bd-dh.sun { background: color-mix(in srgb, var(--mute-bg) 70%, var(--surface)); }
+td.bd-cell.l1 { background: color-mix(in srgb, var(--accent) 6%, var(--surface)); }
+td.bd-cell.l2 { background: color-mix(in srgb, var(--warn) 9%, var(--surface)); }
+td.bd-cell.l3 { background: color-mix(in srgb, var(--bad) 10%, var(--surface)); }
+td.bd-cell.blk { background: repeating-linear-gradient(135deg, var(--bad-bg) 0 6px, var(--surface) 6px 12px); }
+td.bd-cell.conf { box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--warn) 80%, transparent); }
+td.bd-cell.over { background: var(--accent-soft) !important; box-shadow: inset 0 0 0 2px var(--accent) !important; }
+tr.bd-sug th.bd-zh { box-shadow: inset 5px 0 0 var(--accent); background: var(--accent-soft); }
+tr.bd-sug td.bd-cell:not(.over) { background: color-mix(in srgb, var(--accent) 10%, var(--surface)); }
+body.bd-picking td.bd-cell { cursor: copy; }
+body.bd-picking td.bd-cell:hover { box-shadow: inset 0 0 0 2px var(--accent); }
+.bd-chip { --c: #64748b; display: flex; flex-direction: column; border-radius: 6px; padding: 3px 6px 3px 5px; margin-bottom: 3px; background: color-mix(in srgb, var(--c) 16%, var(--surface)); border: 1px solid color-mix(in srgb, var(--c) 45%, transparent); border-left: 4px solid var(--c); cursor: pointer; line-height: 1.22; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; color: var(--ink); }
+.bd-chip:last-child { margin-bottom: 0; }
+.bd-chip:hover { box-shadow: 0 2px 8px -3px color-mix(in srgb, var(--c) 80%, transparent); }
+.bd-chip[draggable="true"] { cursor: grab; }
+.bd-chip b { font-size: .78rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bd-chip > span { font: 600 .68rem var(--font-m); color: var(--ink-2); }
+.bd-chip .tags { display: flex; gap: 3px; flex-wrap: wrap; margin-top: 1px; }
+.bd-tag { font: 700 .6rem var(--font-b); font-style: normal; border-radius: 4px; padding: 0 4px; background: var(--mute-bg); color: var(--ink-2); white-space: nowrap; }
+.bd-tag.cat { background: var(--warn-bg); color: var(--warn); }
+.bd-tag.ok { background: var(--ok-bg); color: var(--ok); }
+.bd-chip.done { opacity: .72; }
+.bd-chip.done b::before { content: "✓ "; color: var(--ok); }
+.bd-chip.flash { animation: bdFlash 1.6s ease-out; }
+@keyframes bdFlash { 0% { box-shadow: 0 0 0 0 var(--accent); transform: scale(1.07); } 60% { box-shadow: 0 0 0 7px transparent; transform: none; } 100% { box-shadow: none; } }
+.bd-grid.mo .bd-dh { min-width: 30px; text-align: center; padding: 4px 2px 5px; }
+.bd-grid.mo .bd-dh .dn { font-size: .85rem; }
+.bd-grid.mo .bd-dh small { font-size: .6rem; }
+.bd-grid.mo td.bd-cell { height: 34px; min-width: 30px; padding: 2px; text-align: center; vertical-align: middle; cursor: pointer; }
+.bd-cnt { --c: var(--accent); display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 4px; border-radius: 999px; font: 700 .72rem var(--font-m); background: var(--c); color: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.25); }
+.bd-ghost { position: fixed; z-index: 7000; pointer-events: none; transform: translate(-50%, -115%) rotate(-2deg); opacity: .95; box-shadow: 0 14px 30px -8px rgba(0,0,0,.5) !important; }
+.hm-board { display: inline-flex; align-items: center; gap: 8px; }
+@media print { .bd-side, .bd-pickbar { display: none !important; } .bd { display: block; } .bd-wrap { max-height: none; overflow: visible; } }
 </style>
 
 </head>
@@ -667,6 +767,7 @@ table.t.fit .op { display: block; font-size: .78rem; color: var(--ink-2); font-w
     </div>
     <nav class="nav" id="nav" aria-label="Vues">
       <button type="button" data-view="home">Accueil</button>
+      <button type="button" data-view="board">Planificateur</button>
       <button type="button" data-view="dem">Demandes</button>
       <button type="button" data-view="dash">Théorique / réel</button>
       <button type="button" data-view="week">Semaine</button>
@@ -1265,7 +1366,7 @@ const S = {
   importPreview: null, gammePreview: null,
 };
 try { const u = JSON.parse(localStorage.getItem('planmaint:ui') || '{}');  if (u.stab) S.ui.stab = u.stab; if (u.monthMode) S.ui.monthMode = u.monthMode; } catch (e) { /* stockage indisponible */ }
-const HASHVIEWS = { accueil: 'home', statistiques: 'stats', programme: 'prog', demandes: 'dem', tableau: 'dash', semaine: 'week', mois: 'month', annee: 'year', taches: 'tasks', equipements: 'equip', parametres: 'settings', graissage: 'grai' };
+const HASHVIEWS = { accueil: 'home', statistiques: 'stats', programme: 'prog', demandes: 'dem', tableau: 'dash', semaine: 'week', mois: 'month', annee: 'year', taches: 'tasks', equipements: 'equip', parametres: 'settings', graissage: 'grai', planificateur: 'board' };
 if (HASHVIEWS[location.hash.slice(1)]) S.ui.view = HASHVIEWS[location.hash.slice(1)];
 function rememberUi() { try { localStorage.setItem('planmaint:ui', JSON.stringify({ view: S.ui.view, stab: S.ui.stab, monthMode: S.ui.monthMode, home2: 1 })); } catch (e) { /* ignoré */ } }
 
@@ -1423,9 +1524,11 @@ function render() {
   const selStart = fid && act.selectionStart !== undefined ? act.selectionStart : null;
   let html;
   if (!S.loaded) html = `<div class="panel"><div class="empty">Chargement des données de maintenance…</div></div>`;
-  else html = ({ home: viewHome, grai: viewGraissage, stats: viewStats, prog: viewProg, dem: viewDem, dash: viewDash, week: viewWeek, month: viewMonth, year: viewYear, tasks: viewTasks, equip: viewEquip, settings: viewSettings }[S.ui.view] || viewHome)();
+  else html = ({ home: viewHome, board: viewBoard, grai: viewGraissage, stats: viewStats, prog: viewProg, dem: viewDem, dash: viewDash, week: viewWeek, month: viewMonth, year: viewYear, tasks: viewTasks, equip: viewEquip, settings: viewSettings }[S.ui.view] || viewHome)();
   if (store.mode === 'local' && S.loaded) html = `<div class="banner no-print">${window.claude ? 'Mode local : les données sont gardées dans ce navigateur uniquement. Ouvrez l’application depuis claude.ai pour les synchroniser entre vos appareils.' : 'Les données sont gardées dans ce navigateur. Pensez au bouton « ✔ Terminé » qui propose une sauvegarde .json à garder en lieu sûr (Paramètres › Sauvegarde pour la restaurer).'}</div>` + html;
-  $('#view').innerHTML = html; if (typeof renderDock === 'function') renderDock();
+  const keep = [...document.querySelectorAll('#view [data-keep-scroll]')].map((el) => [el.dataset.keepScroll, el.scrollTop, el.scrollLeft]);
+  $('#view').innerHTML = html;
+  keep.forEach(([k, t, l]) => { const el = document.querySelector(`#view [data-keep-scroll="${k}"]`); if (el) { el.scrollTop = t; el.scrollLeft = l; } }); if (typeof renderDock === 'function') renderDock();
   if (fid) { const el = document.getElementById(fid); if (el) { el.focus(); if (selStart !== null && el.setSelectionRange) try { el.setSelectionRange(selStart, selStart); } catch (e) { /* type non texte */ } } }
 }
 function emptyData() {
@@ -3578,6 +3681,7 @@ document.addEventListener('change', (e) => {
 
 /* ---------- vue : accueil (tuiles à déplier) ---------- */
 const IC = {
+  board: '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 3v18"/><rect x="11.5" y="11.5" width="6" height="3.5" rx="1"/><path d="M14.5 18.5v2"/>',
   home: '<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h5v-6h4v6h5V9.5"/>',
   inst: '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/><path d="m9 9 3 3 3-3M12 6v6"/>',
   prog: '<path d="M8 2v4M16 2v4M3 9h18"/><rect x="3" y="4" width="18" height="17" rx="2"/><path d="m8.5 15 2.5 2.5 4.5-5"/>',
@@ -3633,7 +3737,7 @@ function viewHome() {
     if (open === x.k) grid += panel(x.k);
   });
   const hello = +new Date().getHours() < 18 ? 'Bonjour' : 'Bonsoir';
-  return `<div class="hm-hero"><div><h1>${hello}</h1><div class="sub">${fmtLong(D.T).replace(/^./, (c) => c.toUpperCase())} · semaine ${D.cw.week} · ${esc(S.settings.site)}</div></div><div class="small muted">Touchez un cercle pour le déplier</div></div>
+  return `<div class="hm-hero"><div><h1>${hello}</h1><div class="sub">${fmtLong(D.T).replace(/^./, (c) => c.toUpperCase())} · semaine ${D.cw.week} · ${esc(S.settings.site)}</div></div><div class="row"><span class="small muted">Touchez un cercle pour le déplier</span><button type="button" class="btn primary hm-board" data-view="board">${icon('board', 18)} Planificateur ZEP × jours</button></div></div>
     <div class="hm-grid">${grid}</div>`;
 }
 function homePanel(k, D) {
@@ -3685,7 +3789,7 @@ function homePanel(k, D) {
   }
   return '';
 }
-const DOCK = [['home', 'Accueil', 'data-view="home"', 'home'], ['add', 'Demande', 'data-act="newdem"'], ['imp', 'Réception', 'data-act="reception"'], ['week', 'Semaine', 'data-view="week"', 'week'], ['month', 'Mois', 'data-view="month"', 'month'], ['year', 'Année', 'data-view="year"', 'year'], ['tasks', 'Tâches', 'data-view="tasks"', 'tasks'], ['stats', 'Stats', 'data-view="stats"', 'stats'], ['set', 'Paramètres', 'data-view="settings"', 'settings'], ['inst', 'Appli', 'data-act="install"']];
+const DOCK = [['home', 'Accueil', 'data-view="home"', 'home'], ['add', 'Demande', 'data-act="newdem"'], ['imp', 'Réception', 'data-act="reception"'], ['board', 'Planifier', 'data-view="board"', 'board'], ['week', 'Semaine', 'data-view="week"', 'week'], ['month', 'Mois', 'data-view="month"', 'month'], ['year', 'Année', 'data-view="year"', 'year'], ['tasks', 'Tâches', 'data-view="tasks"', 'tasks'], ['stats', 'Stats', 'data-view="stats"', 'stats'], ['set', 'Paramètres', 'data-view="settings"', 'settings'], ['inst', 'Appli', 'data-act="install"']];
 function renderDock() {
   const d = document.getElementById('dock'); if (!d) return;
   if (!d.childElementCount) d.innerHTML = `<div class="dock-in">${DOCK.map(([i, l, a, v]) => `<button type="button" class="dock-b" ${a}${v ? ` data-dv="${v}"` : ''}><span class="dock-ic">${icon(i, 22)}</span><span class="dock-l">${l}</span></button>`).join('')}</div>`;
@@ -3967,6 +4071,327 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.
   if (ev === 'dragover') d.classList.add('over'); else d.classList.remove('over');
   if (ev === 'drop' && e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
 }));
+
+/* ---------- planificateur : grille ZEP × jours, glisser-déposer ---------- */
+const BD = () => S.ui.bd || (S.ui.bd = { fam: '', q: '', src: '', mode: 'week', pick: null, flash: null, compact: false });
+const isZep = (z) => /^\s*ZEP\s*-?\s*\d+/i.test(z || '');
+const zepNum = (z) => (String(z || '').match(/\d+/) || [''])[0];
+const zoneContrainte = (z) => { if (!z) return ''; const n = normZone(z); const r = (FORM().zones || []).find((x) => normZone(x.zone) === n); return (r && r.contrainte) || ''; };
+const bdRowOf = (z) => (isZep(z) ? normZone(z) : '__autre');
+const slotMin = (s) => { const r = hm(s && s.h); return r ? r[1] - r[0] : 0; };
+const fmtH = (m) => (!m ? '0 h' : fmtDur(m));
+let bdLastDrop = 0;
+function bdZeps() {
+  const set = new Set();
+  Object.keys(S.settings.refs.zonesFaisceau || {}).forEach((z) => isZep(z) && set.add(normZone(z)));
+  (FORM().zones || []).forEach((z) => isZep(z.zone) && set.add(normZone(z.zone)));
+  (S.settings.refs.zones || []).forEach((z) => isZep(z) && set.add(normZone(z)));
+  for (const t of S.tasks.values()) { const z = t.prog && t.prog.zone; if (isZep(z)) set.add(normZone(z)); }
+  return [...set].sort((a, b) => a.localeCompare(b, 'fr', { numeric: true }));
+}
+function bdDays() {
+  const B = BD();
+  if (B.mode === 'month') { const [y, m] = S.ui.month.split('-').map(Number); const n = new Date(y, m, 0).getDate(); return Array.from({ length: n }, (_, i) => `${y}-${C.pad(m)}-${C.pad(i + 1)}`); }
+  const mon = C.weekMonday(S.ui.wy, S.ui.wk); return Array.from({ length: S.settings.showSunday ? 7 : 6 }, (_, i) => C.addDays(mon, i));
+}
+const bdCap = () => (S.settings.creneauxStd || []).reduce((s, c) => s + (+c.cap || 1), 0) || 6;
+/* ce qui est déjà placé sur la période affichée */
+function bdEntries(days) {
+  const a = days[0], b = days[days.length - 1]; const cells = new Map(); const list = [];
+  for (const t of S.tasks.values()) {
+    if (t.annule || !t.prog) continue;
+    const slots = t.prog.slots && t.prog.slots.length ? t.prog.slots : (t.prog.date ? [{ date: t.prog.date, h: '' }] : []);
+    slots.forEach((s, i) => {
+      if (!s.date || s.date < a || s.date > b) return;
+      const e = { t, s, i, row: bdRowOf(t.prog.zone), d: s.date, min: slotMin(s) };
+      const k = e.row + '|' + e.d; if (!cells.has(k)) cells.set(k, []); cells.get(k).push(e); list.push(e);
+    });
+  }
+  for (const l of cells.values()) l.sort((x, y) => (hm(x.s.h) || [9999])[0] - (hm(y.s.h) || [9999])[0] || equipLabel(x.t).localeCompare(equipLabel(y.t), 'fr', { numeric: true }));
+  return { cells, list };
+}
+const bdConflict = (l) => l.length > 1 && l.some((x, i) => l.some((y, j) => j > i && overlap(x.s.h, y.s.h)));
+/* interventions à placer : demandes reçues, à replanifier, échéances ouvertes ou passées */
+const BD_RANK = { aReprogrammer: 0, demande: 1, enRetard: 2, aProgrammer: 3, prevu: 4 };
+function bdCands(days) {
+  const T = today(); const horizon = C.addDays(days[days.length - 1], 35);
+  const out = [];
+  for (const t of S.tasks.values()) {
+    if (t.annule || (t.real && t.real.date) || (t.prog && t.prog.date)) continue;
+    const st = stOf(t, T); if (!(st in BD_RANK)) continue;
+    if (st === 'prevu' && !(t.fin && t.fin <= horizon)) continue;
+    out.push({ t, st, key: (demOf(t) || {}).du || t.fin || '9999' });
+  }
+  return out.sort((x, y) => BD_RANK[x.st] - BD_RANK[y.st] || x.key.localeCompare(y.key) || equipLabel(x.t).localeCompare(equipLabel(y.t), 'fr', { numeric: true }));
+}
+function bdHint(L, t) { const d = demOf(t) || {}; return (L && lastOf(L.byEq.get(eqKey(t)), 'zone')) || d.zone || ''; }
+function bdDefaultH(t) {
+  const s0 = t.prog && t.prog.slots && t.prog.slots[0]; if (s0 && s0.h) return s0.h;
+  const d = demOf(t) || {}; const a = fromHHMM(d.hDeb);
+  if (a !== null && +d.duree) return `${d.hDeb}-${toHHMM((a + +d.duree) % 1440)}`;
+  if (a !== null && d.hFin) return `${d.hDeb}-${d.hFin}`;
+  const sg = suggestFor(learn(), t, t.type, t.designation); const b = fromHHMM(sg.deb);
+  if (b !== null && +sg.duree) return `${sg.deb}-${toHHMM((b + +sg.duree) % 1440)}`;
+  return S.settings.creneau || '08:00-12:00';
+}
+function viewBoard() {
+  if (!S.tasks.size) return head('Planificateur') + emptyData();
+  const B = BD(); const T = today(); const days = bdDays(); const month = B.mode === 'month';
+  const zeps = bdZeps(); const E = bdEntries(days); const L = learn(); const cap = bdCap();
+  const all = bdCands(days);
+  const famCount = new Map(); all.forEach((c) => famCount.set(c.t.type, (famCount.get(c.t.type) || 0) + 1));
+  const qn = C.norm(B.q || '');
+  const cands = all.filter((c) => (!B.fam || c.t.type === B.fam) && (!B.src || (B.src === 'dem' ? ['demande', 'aReprogrammer'].includes(c.st) : B.src === 'late' ? c.st === 'enRetard' : ['aProgrammer', 'prevu'].includes(c.st)))
+    && (!qn || C.norm([c.t.equip, c.t.designation, c.t.description, (demOf(c.t) || {}).demandeur].join(' ')).includes(qn)));
+  const pickT = B.pick && S.tasks.get(B.pick); const sugRow = pickT ? bdRowOf(bdHint(L, pickT)) : '';
+  const flash = B.flash && Date.now() - B.flash.at < 2500 ? B.flash.id : null;
+  const fine = matchMedia('(pointer: fine)').matches; const drg = (on) => (on && fine ? ' draggable="true"' : '');
+  /* liste de gauche */
+  const fams = [['', 'Toutes', all.length], ...S.settings.types.filter((tp) => famCount.has(tp.id)).map((tp) => [tp.id, tp.label, famCount.get(tp.id)])];
+  const famHtml = fams.map(([id, l, n]) => `<button type="button" class="bd-fam${B.fam === id ? ' on' : ''}" data-act="bdfam" data-k="${esc(id)}" style="--c:${id ? esc(typeOf(id).color) : 'var(--accent)'}">${id ? plate(id) : ''}${esc(l)} <b>${n}</b></button>`).join('');
+  const stTag = (c) => { const d = demOf(c.t) || {}; if (c.st === 'aReprogrammer') return '<span class="pill bad">À replanifier</span>'; if (c.st === 'demande') return '<span class="pill vio">Demande</span>'; if (c.st === 'enRetard') return `<span class="pill bad">Échu ${C.diffDays(T, c.t.fin)} j</span>`; return '<span class="pill warn">Échéance</span>'; };
+  const card = (c) => { const t = c.t; const d = demOf(t) || {}; const z = bdHint(L, t); const per = d.du ? (d.au && d.au !== d.du ? `souhaité ${fmtDM(d.du)}–${fmtDM(d.au)}` : `souhaité ${fmtDM(d.du)}`) : '';
+    return `<div class="bd-card${B.pick === t.id ? ' pick' : ''}" data-bd="${t.id}" data-act="bdpick" data-id="${t.id}"${drg(true)} tabindex="0" style="--c:${esc(typeOf(t.type).color)}" title="Glissez vers une case, ou touchez puis touchez la case">
+      <div class="bd-c1"><b>${esc(equipLabel(t))}</b>${stTag(c)}</div><div class="bd-c2">${esc(t.designation)}</div>
+      <div class="bd-c3">${z ? `<span class="z">ZEP ${esc(zepNum(z))}</span>` : ''}${t.fin ? `<span>éch. ${fmtDM(t.fin)}</span>` : ''}${per ? `<span>${per}</span>` : ''}${d.demandeur ? `<span>${esc(d.demandeur)}</span>` : ''}</div></div>`; };
+  const MAXC = 120;
+  const side = `<aside class="panel bd-side" id="bdSide" data-keep-scroll="side">
+    <div class="panel-h"><h2>À planifier</h2><span class="right muted small">${cands.length} intervention${cands.length > 1 ? 's' : ''}</span></div>
+    <div class="bd-fams">${famHtml}</div>
+    <div class="bd-tools"><input type="search" id="bdQ" data-act-input="bdq" value="${esc(B.q || '')}" placeholder="Rechercher un appareil…" aria-label="Rechercher"><select id="bdSrc" data-act-change="bdsrc" aria-label="Origine" style="width:auto">${optList([['', 'Tout'], ['dem', 'Demandes'], ['late', 'En retard'], ['ech', 'Échéances']], B.src || '')}</select></div>
+    <div class="bd-list" data-keep-scroll="list">${cands.slice(0, MAXC).map(card).join('') || '<p class="empty">Rien à planifier pour ce filtre.</p>'}${cands.length > MAXC ? `<p class="small muted" style="text-align:center">+ ${cands.length - MAXC} autres : affinez avec la famille ou la recherche</p>` : ''}</div>
+    <div class="bd-unplan small">Glissez une étiquette ici pour la retirer du planning</div>
+  </aside>`;
+  /* grille */
+  const rows = [...zeps, '__autre'];
+  const used = new Set(E.list.map((e) => e.row));
+  const shown = B.compact ? rows.filter((r) => used.has(r) || r === sugRow) : rows;
+  const dayTot = (d) => { const l = E.list.filter((e) => e.d === d); return { n: l.length, min: l.reduce((s, e) => s + e.min, 0) }; };
+  const meter = (n) => { const p = Math.min(100, Math.round((n / cap) * 100)); return `<span class="bd-meter"><i style="width:${p}%;background:${n >= cap ? 'var(--bad)' : n >= cap * 0.7 ? 'var(--warn)' : 'var(--ok)'}"></i></span>`; };
+  const indOn = (d, z) => indisposOn(d).filter((i) => !i.zone || C.norm(normZone(i.zone)) === C.norm(z) || (S.settings.refs.zonesFaisceau || {})[z] === i.zone);
+  const headCells = days.map((d) => { const x = dayTot(d); const ind = indisposOn(d); const sun = dow(d) === 6;
+    if (month) return `<th class="bd-dh mo${d === T ? ' today' : ''}${sun ? ' sun' : ''}" title="${JOURS[dow(d)]} ${fmtD(d)} : ${x.n} intervention(s), ${fmtH(x.min)}"><span class="dn">${+d.slice(8)}</span><small>${JOURS_C[dow(d)].slice(0, 1).toUpperCase()}</small>${meter(x.n)}</th>`;
+    return `<th class="bd-dh${d === T ? ' today' : ''}"><span class="dn">${JOURS[dow(d)]} ${fmtDM(d)}</span>${meter(x.n)}<small>${x.n} interv. · ${fmtH(x.min)}</small>${ind.length ? `<span class="pill bad" title="${esc(ind.map((i) => i.motif + (i.zone ? ' (' + i.zone + ')' : '')).join(' · '))}">Indispo</span>` : ''}</th>`; }).join('');
+  const chipHtml = (e) => { const t = e.t; const done = !!(t.real && t.real.date); const p = t.prog || {}; const cm = cmmOf(t); const r = hm(e.s.h);
+    const tags = [cm.length ? `<i class="bd-tag cat" title="Consignation caténaire">⚡ ${esc(cm.map((z) => z.replace(/^CMM\s*/i, 'CMM')).join('+'))}</i>` : (String(p.consign).toUpperCase() === 'OUI' ? '<i class="bd-tag cat">⚡ Caténaire</i>' : ''), p.nbPers ? `<i class="bd-tag pers" title="Personnes">👤 ${+p.nbPers}</i>` : '', p.dVal ? '<i class="bd-tag ok" title="Validé AC">AC ✓</i>' : ''].filter(Boolean).join('');
+    return `<div class="bd-chip${done ? ' done' : ''}${flash === t.id ? ' flash' : ''}" data-bd="${t.id}" data-si="${e.i}" data-act="bdopen" data-id="${t.id}"${drg(!done)} tabindex="0" style="--c:${esc(typeOf(t.type).color)}" title="${esc(`${equipLabel(t)} — ${t.designation}\n${e.s.h || 'journée'}${p.demandeur ? '\n' + p.demandeur : ''}${impactOf(t) ? '\nImpact : ' + impactOf(t) : ''}`)}"><b>${esc(equipLabel(t))}</b><span>${r ? `${toHHMM(r[0])}–${toHHMM(r[1])}` : esc(e.s.h || 'journée')}</span>${tags ? `<span class="tags">${tags}</span>` : ''}</div>`; };
+  const body = shown.map((z) => {
+    const nW = E.list.filter((e) => e.row === z).length; const ctr = z === '__autre' ? 'zone non ZEP ou non renseignée' : zoneContrainte(z);
+    const cells = days.map((d) => { const l = E.cells.get(z + '|' + d) || []; const ind = z !== '__autre' && indOn(d, z).length;
+      const cls = ['bd-cell', l.length ? 'l' + Math.min(3, l.length) : '', d === T ? 'today' : '', ind ? 'blk' : '', bdConflict(l) ? 'conf' : '', dow(d) === 6 ? 'sun' : ''].filter(Boolean).join(' ');
+      const tip = l.map((e) => `${equipLabel(e.t)} ${e.s.h || ''}`).join('\n');
+      return `<td class="${cls}" data-act="bdcell" data-z="${esc(z)}" data-d="${d}"${month && tip ? ` title="${esc(tip)}"` : ''}>${month ? (l.length ? `<span class="bd-cnt" style="--c:${esc(typeOf(l[0].t.type).color)}">${l.length}</span>` : '') : l.map(chipHtml).join('')}</td>`; }).join('');
+    return `<tr class="${z === sugRow ? 'bd-sug' : ''}" data-zr="${esc(z)}"><th class="bd-zh" scope="row"><b>${z === '__autre' ? 'Autre / sans ZEP' : esc(zepNum(z))}${nW ? `<span class="bd-zn">${nW}</span>` : ''}</b>${ctr ? `<small title="${esc(ctr)}">${esc(ctr)}</small>` : ''}</th>${cells}</tr>`;
+  }).join('');
+  /* charge */
+  const tot = E.list.length, totMin = E.list.reduce((s, e) => s + e.min, 0);
+  const nCat = new Set(E.list.filter((e) => cmmOf(e.t).length || String((e.t.prog || {}).consign).toUpperCase() === 'OUI').map((e) => e.t.id)).size;
+  const nConf = [...E.cells.values()].filter(bdConflict).length;
+  const nDone = E.list.filter((e) => e.t.real && e.t.real.date).length;
+  const byFam = new Map(); E.list.forEach((e) => byFam.set(e.t.type, (byFam.get(e.t.type) || 0) + 1));
+  const famBar = [...byFam].sort((a, b) => b[1] - a[1]).map(([id, n]) => `<span class="bd-fseg" style="flex:${n};background:${esc(typeOf(id).color)}" title="${esc(typeOf(id).label)} : ${n}"></span>`).join('');
+  const famLeg = [...byFam].sort((a, b) => b[1] - a[1]).map(([id, n]) => `<span class="tcell small">${plate(id)}${esc(typeOf(id).label)} <b class="mono">${n}</b></span>`).join('');
+  let weeks = '';
+  if (month) { const wk = new Map(); days.forEach((d) => { const w = C.isoWeek(d); const k = w.year + '-' + w.week; if (!wk.has(k)) wk.set(k, { w, n: 0, min: 0, days: 0 }); const o = wk.get(k); const x = dayTot(d); o.n += x.n; o.min += x.min; if (dow(d) < 6) o.days++; });
+    const mx = Math.max(1, ...[...wk.values()].map((o) => o.n));
+    weeks = `<div class="bd-weeks">${[...wk.values()].map((o) => `<button type="button" class="bd-wk" data-act="bdweek" data-y="${o.w.year}" data-w="${o.w.week}" title="Ouvrir la semaine ${o.w.week}"><span class="mono">S${o.w.week}</span><span class="bd-wbar"><i style="width:${Math.round((o.n / mx) * 100)}%"></i></span><b class="mono">${o.n}</b><small>${fmtH(o.min)}</small></button>`).join('')}</div>`; }
+  const [yy, mm] = S.ui.month.split('-').map(Number);
+  const nav = month
+    ? `<div class="nav-week"><button type="button" class="btn sm" data-act="mo" data-d="-1" aria-label="Mois précédent">◀</button><span class="label">${MOIS[mm - 1]} ${yy}</span><button type="button" class="btn sm" data-act="mo" data-d="1" aria-label="Mois suivant">▶</button></div><button type="button" class="btn sm" data-act="motoday">Ce mois</button>`
+    : `<div class="nav-week"><button type="button" class="btn sm" data-act="wk" data-d="-1" aria-label="Semaine précédente">◀</button><span class="label">S${S.ui.wk} · ${S.ui.wy}</span><button type="button" class="btn sm" data-act="wk" data-d="1" aria-label="Semaine suivante">▶</button></div><button type="button" class="btn sm" data-act="wktoday">Aujourd’hui</button>`;
+  const tools = `${nav}<div class="seg" role="group" aria-label="Vue"><button type="button" data-act="bdmode" data-k="week" aria-pressed="${!month}">Semaine</button><button type="button" data-act="bdmode" data-k="month" aria-pressed="${month}">Mois</button></div>
+    <label class="row small"><input type="checkbox" data-act-change="bdcompact" ${B.compact ? 'checked' : ''}> Masquer les ZEP vides</label>
+    ${month ? '' : `<label class="row small"><input type="checkbox" data-act-change="sunday" ${S.settings.showSunday ? 'checked' : ''}> Dimanche</label><button type="button" class="btn sm" data-act="goprog" data-y="${S.ui.wy}" data-w="${S.ui.wk}">Programme S${S.ui.wk}</button><button type="button" class="btn sm primary" data-act="pdfweek">PDF semaine</button>`}`;
+  const sub = month ? `${MOIS[mm - 1]} ${yy} · charge par ZEP et par jour` : `du ${fmtLong(days[0])} au ${fmtLong(days[days.length - 1])}`;
+  const pickBar = pickT ? `<div class="bd-pickbar">${plate(pickT.type)}<span>Touchez une case pour placer <b>${esc(equipLabel(pickT))}</b>${sugRow && sugRow !== '__autre' ? ` · ZEP habituelle <b>${esc(zepNum(sugRow))}</b> surlignée` : ''}</span><button type="button" class="btn sm" data-act="bdpick" data-id="${pickT.id}">Annuler</button></div>` : '';
+  return head('Planificateur', sub, tools) + `
+  <div class="bd">${side}
+    <div class="bd-main">
+      <div class="bd-sum">
+        <div class="bd-k"><b class="mono">${tot}</b><span>intervention${tot > 1 ? 's' : ''} ${month ? 'dans le mois' : 'dans la semaine'}</span></div>
+        <div class="bd-k"><b class="mono">${fmtH(totMin)}</b><span>de travaux cumulés</span></div>
+        <div class="bd-k ${nCat ? 'warn' : ''}"><b class="mono">${nCat}</b><span>avec coupure caténaire</span></div>
+        <div class="bd-k ${nConf ? 'bad' : 'ok'}"><b class="mono">${nConf}</b><span>chevauchement${nConf > 1 ? 's' : ''} même ZEP</span></div>
+        <div class="bd-k ok"><b class="mono">${nDone}</b><span>déjà réalisée${nDone > 1 ? 's' : ''}</span></div>
+        <div class="bd-fam-bar"><div class="bd-fbar">${famBar || '<span class="bd-fseg" style="flex:1;background:var(--line-2)"></span>'}</div><div class="bd-fleg">${famLeg || '<span class="small muted">Rien de placé</span>'}</div></div>
+      </div>
+      ${weeks}${pickBar}
+      <div class="bd-wrap" data-keep-scroll="grid"><table class="bd-grid${month ? ' mo' : ''}"><thead><tr><th class="bd-zh">ZEP<small>capacité ${cap} / jour</small></th>${headCells}</tr></thead><tbody>${body}</tbody></table></div>
+      <div class="legend no-print"><span>Glissez une intervention de la liste vers la case <b>ZEP × jour</b> (sur tablette : touchez-la puis touchez la case, ou appui long et glisser).</span><span>Cliquez une étiquette pour régler heures, personnes, caténaire et impact.</span><span>Glissez une étiquette vers une autre case pour la déplacer, ou vers la liste pour la retirer.</span><span><i style="background:repeating-linear-gradient(135deg,var(--bad-bg) 0 4px,transparent 4px 8px);border:1px solid var(--bad)"></i>indisponible</span><span><i style="border:2px solid var(--warn)"></i>chevauchement d’horaires</span></div>
+    </div>
+  </div>`;
+}
+/* placement, déplacement, retrait */
+async function bdPlace(id, si, zone, date) {
+  const t0 = S.tasks.get(id); if (!t0 || !date) return; const t = clone(t0); const dm = demOf(t) || {}; const p0 = t.prog || {};
+  const moving = si !== undefined && si !== '' && p0.slots && p0.slots[+si];
+  let slots = p0.slots && p0.slots.length ? p0.slots.map((s) => ({ ...s })) : (p0.date ? [{ date: p0.date, h: '' }] : []);
+  if (moving) { slots[+si].date = date; if (!slots[+si].h) slots[+si].h = bdDefaultH(t); } else slots = [{ date, h: bdDefaultH(t) }];
+  slots.sort((a, b) => a.date.localeCompare(b.date));
+  const oldZ = p0.zone || dm.zone || '';
+  const zn = zone === '__autre' ? (!isZep(oldZ) ? oldZ : '') : zone;
+  const com0 = p0.comment !== undefined && p0.comment !== null ? p0.comment : (dm.comment || '');
+  const comment = !com0 || com0 === zoneContrainte(oldZ) ? (zoneContrainte(zn) || com0) : com0;
+  const prevDate = p0.date;
+  t.prog = { ...p0, date: slots[0].date, slots, zone: zn, faisceau: (S.settings.refs.zonesFaisceau || {})[zn] || '', consign: p0.consign ?? dm.consign ?? '', cmm: p0.cmm || dm.cmm || [], demandeur: p0.demandeur || dm.demandeur || '', dDem: p0.dDem || dm.recue || null, dVal: p0.dVal || null, comment, planifieLe: prevDate === slots[0].date && p0.planifieLe ? p0.planifieLe : today() };
+  if (prevDate && prevDate !== t.prog.date) t.reports = [...(t.reports || []), { le: today(), ancien: prevDate, nouveau: t.prog.date }];
+  t.aReprog = false;
+  const grp = dm.grp; const sibs = grp ? [...S.tasks.values()].filter((x) => x.id !== t.id && x.dem && x.dem.grp === grp && !(x.real && x.real.date)).map((x) => { const c = clone(x); c.prog = clone(t.prog); c.aReprog = false; return c; }) : [];
+  const B = BD(); B.pick = null; B.flash = { id, at: Date.now() }; document.body.classList.remove('bd-picking');
+  await store.saveTasks([t, ...sibs]);
+  const r = hm(slots.find((s) => s.date === date)?.h);
+  toast(`${[t, ...sibs].map(equipLabel).join(', ')} → ${zn ? 'ZEP ' + zepNum(zn) : 'sans ZEP'}, ${JOURS_C[dow(date)]} ${fmtDM(date)}${r ? ' ' + toHHMM(r[0]) + '–' + toHHMM(r[1]) : ''}. Cliquez l’étiquette pour régler.`);
+}
+async function bdUnplan(id, si) {
+  const t0 = S.tasks.get(id); if (!t0 || !t0.prog) return; const t = clone(t0);
+  const slots = (t.prog.slots || []).filter((_, i) => String(i) !== String(si));
+  if (si !== undefined && si !== '' && slots.length) { t.prog.slots = slots; t.prog.date = slots[0].date; }
+  else { t.reports = [...(t.reports || []), { le: today(), ancien: t.prog.date, nouveau: null }]; t.prog = null; }
+  closeModal(); await store.saveTasks([t]); toast(`${equipLabel(t)} retiré${t.prog ? ' de ce jour' : ' du planning'}.`);
+}
+/* fiche d'options au clic */
+function bdOpen(id) {
+  const t = S.tasks.get(id); if (!t) return; const p = t.prog || {}; const d = demOf(t) || {}; const R = S.settings.refs;
+  const slots = p.slots && p.slots.length ? p.slots : (p.date ? [{ date: p.date, h: '' }] : []);
+  const demandeurs = [...new Set([...(R.demandeurs || []), ...((FORM().demandeurs) || []), ...[...S.tasks.values()].map((x) => (demOf(x) || {}).demandeur || (x.prog && x.prog.demandeur))].filter(Boolean))].sort();
+  const co = p.consign || d.consign || '';
+  const crs = (S.settings.creneauxStd || []).map((c) => `<button type="button" class="btn sm" data-act="bdcr" data-h="${esc(c.h)}">${esc(c.label)} ${esc(c.h)}</button>`).join('');
+  openModal(`<div class="modal-h">${plate(t.type)}<div><h2>${esc(equipLabel(t))}</h2><div class="small muted">${esc(t.designation)}</div></div><button type="button" class="btn ghost x" data-act="close" aria-label="Fermer">✕</button></div>
+  <div class="modal-b" id="bdForm" data-id="${t.id}">
+    <dl class="kv"><dt>Fenêtre GMAO</dt><dd class="mono">${t.fin ? (t.debut ? fmtD(t.debut) + ' au ' : '') + fmtD(t.fin) : 'hors GMAO'}</dd>
+      <dt>Demande</dt><dd>${d.recue ? 'reçue le ' + fmtD(d.recue) : 'non saisie'}${d.du ? ' · souhaitée le ' + fmtD(d.du) : ''}${d.hDeb ? ' · plage ' + esc(d.hDeb) + (d.hFin ? '–' + esc(d.hFin) : '') : ''}</dd>
+      <dt>Statut</dt><dd>${pill(t)}</dd></dl>
+    <fieldset class="sec"><legend>Jours et heures</legend>
+      <div class="srow-h small muted"><span>Jour</span><span>Début</span><span>Durée</span><span>Fin</span><span></span></div>
+      <div class="slots-ed" id="slotsEd">${slots.map(slotRow).join('')}</div>
+      <div class="row" style="margin-top:8px"><button type="button" class="btn sm" data-act="slotadd">+ Étaler sur un jour de plus</button><span class="small muted">Créneau type :</span>${crs}</div>
+    </fieldset>
+    <fieldset class="sec"><legend>Lieu et personnes</legend><div class="form-grid">
+      <label class="field"><span>Zone (ZEP)</span>${zoneSelect('b-zo', p.zone || d.zone || '')}</label>
+      <label class="field"><span>Demandeur / entreprise</span><input id="b-dem" list="dl-bdem" value="${esc(p.demandeur || d.demandeur || '')}"></label>
+      <label class="field"><span>Intervenants (noms)</span><input id="b-eq" value="${esc(p.equipe || '')}" placeholder="ex. Martin, Leroy"></label>
+      <label class="field"><span>Nombre de personnes</span><input type="number" id="b-nb" min="0" max="99" value="${esc(p.nbPers || '')}"></label>
+    </div></fieldset>
+    <fieldset class="sec"><legend>Consignation et impact</legend><div class="form-grid">
+      <label class="field"><span>Consignation caténaire</span><select id="b-co">${optList([['', '—'], ['NON', 'NON'], ['OUI', 'OUI']], co)}</select></label>
+      <label class="field"><span>Validation AC le</span><input type="date" id="b-va" value="${esc(p.dVal || '')}"></label>
+      <label class="field"><span>Réalisé le</span><input type="date" id="b-real" value="${esc((t.real && t.real.date) || '')}"></label>
+      ${cmmPicker('b-cmm', cmmOf(t), co === 'OUI')}
+      <label class="field wide"><span>Impact sur l’exploitation (voie)</span><textarea id="b-imp" rows="2" style="font-family:var(--font-b);font-size:.88rem;min-height:56px">${esc(p.comment ?? d.comment ?? '')}</textarea></label>
+    </div></fieldset>
+    ${dl('dl-bdem', demandeurs)}
+  </div>
+  <div class="modal-f">${p.date ? `<button type="button" class="btn danger" data-act="bdunplan" data-id="${t.id}">Retirer du planning</button>` : ''}<button type="button" class="btn" data-act="bdfull" data-id="${t.id}">Fiche complète</button><span class="sp"></span><button type="button" class="btn" data-act="close">Annuler</button><button type="button" class="btn primary" data-act="bdsave" data-id="${t.id}">Enregistrer</button></div>`);
+  const zs = document.getElementById('b-zo'); if (zs) zs.dataset.prev = p.zone || d.zone || '';
+}
+async function bdSave(id) {
+  const t0 = S.tasks.get(id); if (!t0) return; const t = clone(t0); const v = (x) => { const el = document.getElementById(x); return el ? el.value.trim() : ''; };
+  const slots = [...document.querySelectorAll('#slotsEd .srow')].map((r) => { const a = r.querySelector('.s-deb').value, b = slotFin(r); return { date: r.querySelector('.s-date').value, h: a && b ? `${a}-${b}` : (a || r.dataset.h || '') }; }).filter((s) => s.date).sort((a, b) => a.date.localeCompare(b.date));
+  const zn = zoneVal('b-zo'); const prevDate = t.prog && t.prog.date; const co = v('b-co');
+  if (slots.length) {
+    t.prog = { ...(t.prog || {}), date: slots[0].date, slots, zone: zn, faisceau: (S.settings.refs.zonesFaisceau || {})[zn] || '', demandeur: v('b-dem'), equipe: v('b-eq'), nbPers: +v('b-nb') || null, consign: co, cmm: co === 'OUI' ? cmmVal('b-cmm') : [], dVal: v('b-va') || null, comment: v('b-imp'), dDem: (t.prog && t.prog.dDem) || (demOf(t) || {}).recue || null, planifieLe: (t.prog && t.prog.planifieLe && prevDate === slots[0].date) ? t.prog.planifieLe : today() };
+    if (prevDate && prevDate !== t.prog.date) t.reports = [...(t.reports || []), { le: today(), ancien: prevDate, nouveau: t.prog.date }];
+    t.aReprog = false;
+  } else t.prog = null;
+  if (t.dem && !t.dem.demandeur && v('b-dem')) t.dem = { ...t.dem, demandeur: v('b-dem') };
+  const rd = v('b-real'); t.real = rd ? { ...(t.real || {}), date: rd, src: 'app' } : null;
+  const grp = (demOf(t) || {}).grp; const sibs = grp && t.prog ? [...S.tasks.values()].filter((x) => x.id !== t.id && x.dem && x.dem.grp === grp && !(x.real && x.real.date)).map((x) => { const c = clone(x); c.prog = clone(t.prog); c.aReprog = false; return c; }) : [];
+  BD().flash = { id, at: Date.now() }; closeModal(); await store.saveTasks([t, ...sibs]);
+  toast(`${equipLabel(t)} enregistré${sibs.length ? ` (+ ${sibs.length} appareil${sibs.length > 1 ? 's' : ''} de la même demande)` : ''}.`);
+}
+CMM_FOR['b-co'] = 'b-cmm';
+document.addEventListener('change', (e) => {
+  const el = e.target; if (!el || (el.id !== 'b-zo' && el.id !== 'b-zo-txt')) return;
+  const sel = document.getElementById('b-zo'); const imp = document.getElementById('b-imp'); if (!sel || !imp) return;
+  const nz = zoneVal('b-zo'); const old = zoneContrainte(sel.dataset.prev || '');
+  if (!imp.value.trim() || imp.value.trim() === old) imp.value = zoneContrainte(nz) || imp.value;
+  sel.dataset.prev = nz;
+});
+Object.assign(ACT, {
+  bdfam: (ds) => { const B = BD(); B.fam = B.fam === ds.k ? '' : ds.k; render(); },
+  bdmode: (ds) => { BD().mode = ds.k; if (ds.k === 'month') S.ui.month = C.weekMonday(S.ui.wy, S.ui.wk).slice(0, 7); render(); },
+  bdweek: (ds) => { S.ui.wy = +ds.y; S.ui.wk = +ds.w; BD().mode = 'week'; render(); },
+  bdpick: (ds) => { if (Date.now() - bdLastDrop < 600) return; const B = BD(); B.pick = B.pick === ds.id ? null : ds.id; document.body.classList.toggle('bd-picking', !!B.pick); render(); },
+  bdcell: (ds) => {
+    if (Date.now() - bdLastDrop < 600) return; const B = BD();
+    if (B.pick) { bdPlace(B.pick, '', ds.z, ds.d); return; }
+    if (B.mode === 'month') { const w = C.isoWeek(ds.d); S.ui.wy = w.year; S.ui.wk = w.week; B.mode = 'week'; render(); }
+  },
+  bdopen: (ds, el, e) => { if (Date.now() - bdLastDrop < 600) return; const B = BD(); if (B.pick) { e.stopPropagation(); const td = el.closest('.bd-cell'); if (td) bdPlace(B.pick, '', td.dataset.z, td.dataset.d); return; } bdOpen(ds.id); },
+  bdsave: (ds) => bdSave(ds.id),
+  bdunplan: (ds) => bdUnplan(ds.id),
+  bdfull: (ds) => { closeModal(); openEditor(ds.id); },
+  bdcr: (ds) => { const r = hm(ds.h); const row = document.querySelector('#slotsEd .srow'); if (!r || !row) return; row.querySelector('.s-deb').value = toHHMM(r[0]); const dur = (r[1] - r[0] + 1440) % 1440; const sel = row.querySelector('.s-dur'); if (![...sel.options].some((o) => +o.value === dur)) sel.innerHTML = durOptions(dur); sel.value = String(dur); row.querySelector('.s-fin').textContent = slotFin(row) || '—'; },
+});
+Object.assign(CHANGE, {
+  bdsrc: (el) => { BD().src = el.value; render(); },
+  bdcompact: (el) => { BD().compact = el.checked; render(); },
+});
+document.addEventListener('input', (e) => { const el = e.target; if (el.dataset && el.dataset.actInput === 'bdq') { clearTimeout(qTimer); qTimer = setTimeout(() => { BD().q = el.value; render(); }, 200); } });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && BD().pick && !$('#modalRoot').childElementCount) { BD().pick = null; document.body.classList.remove('bd-picking'); render(); } });
+
+/* glisser-déposer : souris (HTML5) */
+let BDRAG = null;
+function bdHighlight(id) {
+  document.querySelectorAll('tr.bd-sug').forEach((r) => r.classList.remove('bd-sug'));
+  const t = id && S.tasks.get(id); if (!t || (t.prog && t.prog.date)) return;
+  const z = bdRowOf(bdHint(learn(), t)); if (z === '__autre') return;
+  document.querySelectorAll('tr[data-zr]').forEach((r) => { if (r.dataset.zr === z) r.classList.add('bd-sug'); });
+}
+function bdDropOn(target) {
+  if (!BDRAG) return; const D0 = BDRAG; BDRAG = null; bdLastDrop = Date.now();
+  const cell = target && target.closest && target.closest('.bd-cell'); const side = target && target.closest && target.closest('#bdSide');
+  if (cell) bdPlace(D0.id, D0.si, cell.dataset.z, cell.dataset.d);
+  else if (side && D0.si !== undefined && D0.si !== '') bdUnplan(D0.id, (S.tasks.get(D0.id)?.prog?.slots || []).length > 1 ? D0.si : '');
+}
+function bdClean() { document.querySelectorAll('.bd-cell.over,#bdSide.over').forEach((x) => x.classList.remove('over')); document.querySelectorAll('.dragging').forEach((x) => x.classList.remove('dragging')); document.body.classList.remove('bd-dragging'); }
+document.addEventListener('dragstart', (e) => {
+  const el = e.target.closest && e.target.closest('[data-bd]'); if (!el) return;
+  BDRAG = { id: el.dataset.bd, si: el.dataset.si ?? '' };
+  try { e.dataTransfer.setData('text/plain', el.dataset.bd); e.dataTransfer.effectAllowed = 'move'; } catch (x) { /* ignoré */ }
+  el.classList.add('dragging'); document.body.classList.add('bd-dragging'); bdHighlight(BDRAG.si === '' ? BDRAG.id : null);
+});
+document.addEventListener('dragover', (e) => {
+  if (!BDRAG) return; const cell = e.target.closest && (e.target.closest('.bd-cell') || e.target.closest('#bdSide'));
+  if (!cell) return; e.preventDefault(); try { e.dataTransfer.dropEffect = 'move'; } catch (x) { /* ignoré */ }
+  if (!cell.classList.contains('over')) { document.querySelectorAll('.bd-cell.over,#bdSide.over').forEach((x) => x.classList.remove('over')); cell.classList.add('over'); }
+});
+document.addEventListener('drop', (e) => { if (!BDRAG) return; e.preventDefault(); bdClean(); bdDropOn(e.target); });
+document.addEventListener('dragend', () => { bdClean(); document.querySelectorAll('tr.bd-sug').forEach((r) => r.classList.remove('bd-sug')); setTimeout(() => { BDRAG = null; }, 0); });
+
+/* glisser-déposer : tactile (appui long puis glisser) */
+let TDR = null;
+document.addEventListener('touchstart', (e) => {
+  const el = e.target.closest && e.target.closest('[data-bd]'); if (!el || e.touches.length > 1) return;
+  if (el.classList.contains('done')) return;
+  const p = e.touches[0];
+  TDR = { el, x: p.clientX, y: p.clientY, on: false, ghost: null, timer: setTimeout(() => {
+    if (!TDR) return; TDR.on = true; BDRAG = { id: el.dataset.bd, si: el.dataset.si ?? '' };
+    const g = el.cloneNode(true); g.className = 'bd-ghost ' + el.className.replace(/\b(pick|flash)\b/g, ''); g.style.width = Math.min(220, el.offsetWidth) + 'px'; g.style.left = TDR.x + 'px'; g.style.top = TDR.y + 'px'; document.body.appendChild(g); TDR.ghost = g;
+    el.classList.add('dragging'); document.body.classList.add('bd-dragging'); bdHighlight(BDRAG.si === '' ? BDRAG.id : null);
+    if (navigator.vibrate) try { navigator.vibrate(12); } catch (x) { /* ignoré */ }
+  }, 320) };
+}, { passive: true });
+document.addEventListener('touchmove', (e) => {
+  if (!TDR) return; const p = e.touches[0];
+  if (!TDR.on) { if (Math.hypot(p.clientX - TDR.x, p.clientY - TDR.y) > 10) { clearTimeout(TDR.timer); TDR = null; } return; }
+  e.preventDefault(); TDR.ghost.style.left = p.clientX + 'px'; TDR.ghost.style.top = p.clientY + 'px';
+  const under = document.elementFromPoint(p.clientX, p.clientY); const cell = under && (under.closest('.bd-cell') || under.closest('#bdSide'));
+  document.querySelectorAll('.bd-cell.over,#bdSide.over').forEach((x) => x !== cell && x.classList.remove('over')); if (cell) cell.classList.add('over');
+  TDR.lx = p.clientX; TDR.ly = p.clientY;
+  const wrap = document.querySelector('.bd-wrap'); if (wrap) { const r = wrap.getBoundingClientRect(); if (p.clientX > r.right - 30) wrap.scrollLeft += 12; else if (p.clientX < r.left + 30 && p.clientX > r.left) wrap.scrollLeft -= 12; }
+  if (p.clientY > innerHeight - 90) scrollBy(0, 12); else if (p.clientY < 120) scrollBy(0, -12);
+}, { passive: false });
+function tdrEnd(e, cancel) {
+  if (!TDR) return; clearTimeout(TDR.timer); const D0 = TDR; TDR = null;
+  if (!D0.on) return; if (e.cancelable) e.preventDefault();
+  if (D0.ghost) D0.ghost.remove(); bdClean(); document.querySelectorAll('tr.bd-sug').forEach((r) => r.classList.remove('bd-sug'));
+  if (cancel || D0.lx === undefined) { BDRAG = null; bdLastDrop = Date.now(); return; }
+  bdDropOn(document.elementFromPoint(D0.lx, D0.ly));
+}
+document.addEventListener('touchend', (e) => tdrEnd(e, false), { passive: false });
+document.addEventListener('touchcancel', (e) => tdrEnd(e, true), { passive: false });
+document.addEventListener('contextmenu', (e) => { if (TDR && TDR.on) e.preventDefault(); });
 
 function tick() { const d = new Date(); const iso = today(); $('#clock').textContent = `${JOURS_C[dow(iso)]} ${fmtD(iso)} · S${C.isoWeek(iso).week} · ${C.pad(d.getHours())}:${C.pad(d.getMinutes())}`; }
 tick(); setInterval(tick, 20000);
