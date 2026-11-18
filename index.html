@@ -741,6 +741,34 @@ body.bd-picking td.bd-cell:hover { box-shadow: inset 0 0 0 2px var(--accent); }
 .bd-ghost { position: fixed; z-index: 7000; pointer-events: none; transform: translate(-50%, -115%) rotate(-2deg); opacity: .95; box-shadow: 0 14px 30px -8px rgba(0,0,0,.5) !important; }
 .hm-board { display: inline-flex; align-items: center; gap: 8px; }
 @media print { .bd-side, .bd-pickbar { display: none !important; } .bd { display: block; } .bd-wrap { max-height: none; overflow: visible; } }
+
+/* planificateur : pleine largeur, liste repliable, prestations, menu à gauche */
+body[data-page="board"] .page, body[data-page="board"] .band-inner { max-width: none; }
+.bd { grid-template-columns: minmax(240px, 280px) minmax(0, 1fr); }
+.bd.side-off { grid-template-columns: 46px minmax(0, 1fr); }
+@media (max-width: 900px) { .bd.side-off { grid-template-columns: minmax(0, 1fr); } }
+.bd-side .panel-h .right .btn { margin-left: 4px; }
+.bd-side.off { max-height: none; overflow: visible; background: none; border: 0; box-shadow: none; }
+.bd-sidebtn { width: 46px; min-height: 220px; display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 12px 0; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); color: var(--accent); font-weight: 700; cursor: pointer; box-shadow: var(--shadow); }
+.bd-sidebtn:hover { border-color: var(--accent); }
+.bd-vt { writing-mode: vertical-rl; transform: rotate(180deg); white-space: nowrap; font-family: var(--font-d); letter-spacing: .04em; }
+@media (max-width: 900px) { .bd-sidebtn { width: 100%; min-height: 0; flex-direction: row; justify-content: center; } .bd-vt { writing-mode: horizontal-tb; transform: none; } }
+.bd-new { padding: 10px 12px 2px; display: flex; flex-direction: column; gap: 6px; }
+.bd-newrow { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.bd-tpl { --c: var(--accent); display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 7px 4px 6px; border-radius: 10px; border: 1px dashed color-mix(in srgb, var(--c) 70%, transparent); background: color-mix(in srgb, var(--c) 12%, var(--surface)); color: var(--c); font: 700 .76rem var(--font-b); cursor: grab; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.bd-tpl span { color: var(--ink); }
+.bd-tpl:hover { border-style: solid; background: color-mix(in srgb, var(--c) 20%, var(--surface)); }
+.bd-tpl.dragging { opacity: .5; }
+.bd-mic { --c: var(--accent); width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: color-mix(in srgb, var(--c) 18%, var(--surface)); color: var(--c); flex: none; }
+@media (min-width: 901px) {
+  body[data-page="board"] .dock { top: 0; right: auto; width: auto; flex-direction: column; justify-content: flex-end; padding: 0 0 max(10px, env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-left, 0px)); }
+  body[data-page="board"] .dock-in { flex-direction: column; margin: 0; padding: 8px 5px; max-height: calc(100vh - 130px); overflow-x: hidden; overflow-y: auto; border-radius: 16px; }
+  body[data-page="board"] .dock-in::before { left: 0; right: auto; top: 14px; bottom: 14px; width: 2px; height: auto; background: linear-gradient(180deg, #22d3ee, #3b82f6, #818cf8, #fb923c, #f472b6); }
+  body[data-page="board"] .dock-b { min-width: 0; width: 64px; padding: 5px 2px 4px; font-size: .66rem; gap: 2px; }
+  body[data-page="board"] .dock-b .dock-ic { width: 34px; height: 27px; }
+  body[data-page="board"] .page { padding-left: calc(88px + env(safe-area-inset-left, 0px)); padding-bottom: 28px; }
+  body[data-page="board"] .toasts { bottom: 24px; }
+}
 </style>
 
 </head>
@@ -853,6 +881,9 @@ const CORE = (() => {
     { id: 'PN', label: 'Passages à niveau', color: '#ea580c' },
     { id: 'VOIE', label: 'Voie et tournées', color: '#65a30d' },
     { id: 'CATENAIRE', label: 'Caténaire', color: '#a16207' },
+    { id: 'WAGON', label: 'Maintenance wagons', color: '#0f766e' },
+    { id: 'LOCO', label: 'Prestations loco', color: '#b45309' },
+    { id: 'PRESTA', label: 'Autres prestations', color: '#c026d3' },
     { id: 'AUTRE', label: 'Autres travaux', color: '#64748b' },
   ];
 
@@ -1517,6 +1548,7 @@ const yearsAvailable = () => { const s = new Set([S.ui.year, +nowIso.slice(0, 4)
 function yearSelect(id) { return `<select id="${id}" data-act-change="year" aria-label="Année" style="width:auto">${optList(yearsAvailable(), S.ui.year)}</select>`; }
 
 /* ---------- rendu principal ---------- */
+function bannerOff() { try { return localStorage.getItem('planmaint:banner-off') === '1'; } catch (e) { return false; } }
 function render() {
   document.querySelectorAll('#nav button').forEach((b) => b.setAttribute('aria-current', b.dataset.view === S.ui.view ? 'page' : 'false'));
   const bp = $('#btnPdf'); if (bp) { const [m] = S.ui.month.split('-').slice(1); bp.textContent = S.ui.view === 'stats' ? 'PDF contrôles' : S.ui.view === 'grai' ? `PDF graissage ${S.ui.gy}` : S.ui.view === 'month' ? `PDF ${MOIS[+m - 1]}` : S.ui.view === 'dem' ? 'PDF demandes' : S.ui.view === 'prog' ? `PDF programme S${S.ui.pwk}` : `PDF semaine S${S.ui.wk}`; }
@@ -1525,7 +1557,8 @@ function render() {
   let html;
   if (!S.loaded) html = `<div class="panel"><div class="empty">Chargement des données de maintenance…</div></div>`;
   else html = ({ home: viewHome, board: viewBoard, grai: viewGraissage, stats: viewStats, prog: viewProg, dem: viewDem, dash: viewDash, week: viewWeek, month: viewMonth, year: viewYear, tasks: viewTasks, equip: viewEquip, settings: viewSettings }[S.ui.view] || viewHome)();
-  if (store.mode === 'local' && S.loaded) html = `<div class="banner no-print">${window.claude ? 'Mode local : les données sont gardées dans ce navigateur uniquement. Ouvrez l’application depuis claude.ai pour les synchroniser entre vos appareils.' : 'Les données sont gardées dans ce navigateur. Pensez au bouton « ✔ Terminé » qui propose une sauvegarde .json à garder en lieu sûr (Paramètres › Sauvegarde pour la restaurer).'}</div>` + html;
+  if (store.mode === 'local' && S.loaded && S.ui.view !== 'board' && !bannerOff()) html = `<div class="banner no-print row" style="justify-content:space-between;flex-wrap:nowrap"><span>${window.claude ? 'Mode local : les données sont gardées dans ce navigateur uniquement. Ouvrez l’application depuis claude.ai pour les synchroniser entre vos appareils.' : 'Les données sont gardées dans ce navigateur. Pensez au bouton « ✔ Terminé » qui propose une sauvegarde .json à garder en lieu sûr (Paramètres › Sauvegarde pour la restaurer).'}</span><button type="button" class="btn sm ghost" data-act="banneroff" aria-label="Masquer ce rappel" title="Masquer ce rappel">✕</button></div>` + html;
+  document.body.dataset.page = S.ui.view;
   const keep = [...document.querySelectorAll('#view [data-keep-scroll]')].map((el) => [el.dataset.keepScroll, el.scrollTop, el.scrollLeft]);
   $('#view').innerHTML = html;
   keep.forEach(([k, t, l]) => { const el = document.querySelector(`#view [data-keep-scroll="${k}"]`); if (el) { el.scrollTop = t; el.scrollLeft = l; } }); if (typeof renderDock === 'function') renderDock();
@@ -1860,7 +1893,7 @@ function suggestFor(L, t, type, des) {
 let DEML = null; let DF = null;
 function durOptions(sel) { const list = [...DURS]; if (sel && !list.includes(+sel)) list.push(+sel); list.sort((a, b) => a - b); return `<option value="">—</option>` + list.map((m) => `<option value="${m}"${+sel === m ? ' selected' : ''}>${fmtDur(m)}</option>`).join(''); }
 const FORM = () => S.settings.form || DEFAULT_FORM;
-const CAT_TYPE = { JGP: 'JGP', ADV: 'ADV', 'CENTRES POSTE': 'CENTRE', 'CIRCUIT DE VOIE': 'CDV', 'PASSAGE A NIVEAUX': 'PN', 'TRAVERSEE ROUTIERE': 'PN', SIGNAL: 'SIGNAL', 'FEU DE HEURTOIR': 'HEURTOIR', AD: 'VOIE', LRS: 'VOIE', GEOMETRIE: 'VOIE', TOURNEE: 'VOIE', CATENAIRE: 'CATENAIRE' };
+const CAT_TYPE = { JGP: 'JGP', ADV: 'ADV', 'CENTRES POSTE': 'CENTRE', 'CIRCUIT DE VOIE': 'CDV', 'PASSAGE A NIVEAUX': 'PN', 'TRAVERSEE ROUTIERE': 'PN', SIGNAL: 'SIGNAL', 'FEU DE HEURTOIR': 'HEURTOIR', AD: 'VOIE', LRS: 'VOIE', GEOMETRIE: 'VOIE', TOURNEE: 'VOIE', CATENAIRE: 'CATENAIRE', EXPERTISE: 'WAGON', VERIFICATION: 'WAGON', MAINTENANCE: 'WAGON', 'PRESTATION LOCO': 'LOCO', ELAGAGE: 'PRESTA' };
 const catKey = (nom) => C.norm(nom).toUpperCase();
 const catOf = (nom) => FORM().cats.find((c) => c.nom === nom) || null;
 function catType(cat, nature) { return (cat && CAT_TYPE[catKey(cat.nom)]) || C.classify(nature || '', cat ? cat.code : '', '') || 'AUTRE'; }
@@ -2532,16 +2565,17 @@ function mailBuild(wy, wk) {
   for (const d of days) {
     const list = rows.filter((r) => r.date === d);
     const dl = `${JOURS[dow(d)].toUpperCase()} ${fmtD(d)}`;
-    h += `<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;font-size:12px;margin:0 0 14px"><tr><td colspan="4" bgcolor="${model === 'classique' ? '#2e3e50' : '#0b1d55'}" style="background:${model === 'classique' ? '#2e3e50' : '#0b1d55'};color:#ffffff;font-weight:bold;padding:${model === 'classique' ? '4px 6px' : '6px 10px'};font-size:12px;letter-spacing:.5px">${dl}</td></tr>`;
+    h += `<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;font-size:12px;margin:0 0 14px"><tr><td colspan="3" bgcolor="${model === 'classique' ? '#2e3e50' : '#0b1d55'}" style="background:${model === 'classique' ? '#2e3e50' : '#0b1d55'};color:#ffffff;font-weight:bold;padding:${model === 'classique' ? '4px 6px' : '6px 10px'};font-size:12px;letter-spacing:.5px">${dl}</td></tr>`;
     text += `\n${dl}\n`;
-    if (!list.length) { h += `<tr><td colspan="4" style="${B}color:#9ca3af;font-style:italic;font-size:11px">Aucune intervention prévue</td></tr>`; text += '  Aucune intervention prévue\n'; }
+    if (!list.length) { h += `<tr><td colspan="3" style="${B}color:#9ca3af;font-style:italic;font-size:11px">Aucune intervention prévue</td></tr>`; text += '  Aucune intervention prévue\n'; }
     for (const r of list) {
       const col = typeOf(r.type).color; const tint = rgb(hexRgb(col, 0.82)); const dark = rgb(darkRgb(col));
-      h += `<tr><td style="${B}background:${tint};color:${dark};font-weight:bold;white-space:nowrap;width:105px">${e(r.h)}${r.duree ? `<br><span style="font-weight:normal;font-size:11px">${e(fmtDur(r.duree))}</span>` : ''}</td>`
-        + `<td style="${B}width:95px;white-space:nowrap"><b>${e(zoneTxt(r))}</b></td>`
-        + `<td style="${B}"><b style="color:${dark}">${e(r.equip)}</b> – ${e(r.nature)}<br><span style="color:#6b7280;font-size:11px">${[r.demandeur ? 'Demandeur : ' + e(r.demandeur) : '', r.consign ? 'Consignation caténaire : <b>' + e(r.consign) + '</b>' : ''].filter(Boolean).join(' · ')}</span></td>`
-        + `<td style="${B}width:36%">${r.impact ? `<b>Impact :</b> ${e(r.impact)}` : '<span style="color:#9ca3af">Pas d’impact signalé</span>'}</td></tr>`;
-      text += `  - ${r.h}${r.duree ? ' (' + fmtDur(r.duree) + ')' : ''} · ${zoneTxt(r)} · ${r.equip} – ${r.nature}${r.consign ? ' · consignation ' + r.consign : ''}${r.impact ? '\n    Impact : ' + r.impact : ''}\n`;
+      const zt = zoneTxt(r); const zl = /^ZEP\b/i.test(zt) ? ['ZEP', zepNum(zt)] : ['Zone', zt];
+      const lab = (k, v) => `<span style="color:#6b7280;font-weight:normal;font-size:11px">${k} :</span> <b>${e(v)}</b>`;
+      h += `<tr><td style="${B}background:${tint};color:${dark};white-space:nowrap;width:150px;line-height:1.7;font-size:12px">${lab('Heure', r.h || 'journée')}<br>${r.duree ? lab('Durée', fmtDur(r.duree)) + '<br>' : ''}${zl[1] ? lab(zl[0], zl[1]) : ''}</td>`
+        + `<td style="${B}"><div style="font-size:14px;font-weight:bold;line-height:1.35"><span style="color:${dark}">${e(r.equip)}</span> – ${e(r.nature)}</div>${r.consign ? `<div style="color:#6b7280;font-size:11px;margin-top:2px">Consignation caténaire : <b>${e(r.consign)}</b></div>` : ''}</td>`
+        + `<td style="${B}width:38%;font-size:13.5px;line-height:1.4">${r.impact ? `<b>Impact : ${e(r.impact)}</b>` : '<span style="color:#9ca3af;font-size:11px">Pas d’impact signalé</span>'}</td></tr>`;
+      text += `  - Heure : ${r.h || 'journée'}${r.duree ? ' · Durée : ' + fmtDur(r.duree) : ''}${zl[1] ? ' · ' + zl[0] + ' : ' + zl[1] : ''}\n    ${r.equip} – ${r.nature}${r.consign ? ' · consignation ' + r.consign : ''}${r.impact ? '\n    Impact : ' + r.impact : ''}\n`;
     }
     h += `</table>`;
   }
@@ -2555,16 +2589,30 @@ function openMail() {
   openModal(`<div class="modal-h"><h2>Mail Information travaux · S${wk}</h2>${m.validated ? (m.changed ? '<span class="pill or">modifié depuis la validation</span>' : '<span class="pill ok">programme validé</span>') : '<span class="pill warn">provisoire</span>'}<button type="button" class="btn ghost x" data-act="close" aria-label="Fermer">✕</button></div>
   <div class="modal-b">
     <div class="form-grid"><label class="field wide"><span>Destinataires</span><input id="m-dest" value="${esc(S.settings.destinataires || '')}" placeholder="adresse1@…; adresse2@…"></label>
+    <label class="field wide"><span>Copie cachée (Cci)</span><input id="m-cci" value="${esc(S.settings.destinatairesCci || '')}" placeholder="adresse1@…; adresse2@…"></label>
     <label class="field wide"><span>Objet</span><input id="m-subj" value="${esc(m.subject)}" readonly></label></div>
     <div class="mailprev" id="m-prev">${m.html}</div>
     <textarea id="m-body" hidden>${esc(m.text)}</textarea>
     <p class="small muted">« Copier le mail » copie la mise en forme : collez-le directement dans le corps d’un nouveau message Outlook. Les logos se règlent dans Paramètres › Mail.</p>
   </div>
-  <div class="modal-f"><button type="button" class="btn" data-act="copy" data-src="m-dest">Copier les destinataires</button><button type="button" class="btn" data-act="copy" data-src="m-subj">Copier l’objet</button><span class="sp"></span><button type="button" class="btn" data-act="mailhtml">Télécharger (.html)</button><button type="button" class="btn primary" data-act="mailcopy">Copier le mail</button></div>`);
+  <div class="modal-f"><button type="button" class="btn" data-act="copy" data-src="m-dest">Copier les destinataires</button><button type="button" class="btn" data-act="copy" data-src="m-cci">Copier les Cci</button><button type="button" class="btn" data-act="mailto">Ouvrir la messagerie</button><button type="button" class="btn" data-act="copy" data-src="m-subj">Copier l’objet</button><span class="sp"></span><button type="button" class="btn" data-act="mailhtml">Télécharger (.html)</button><button type="button" class="btn primary" data-act="mailcopy">Copier le mail</button></div>`);
+}
+function mailKeepDest() {
+  const d = $('#m-dest'), c = $('#m-cci'); let ch = false;
+  if (d && d.value.trim() !== (S.settings.destinataires || '')) { S.settings.destinataires = d.value.trim(); ch = true; }
+  if (c && c.value.trim() !== (S.settings.destinatairesCci || '')) { S.settings.destinatairesCci = c.value.trim(); ch = true; }
+  if (ch) store.saveSettings();
+}
+function mailTo() {
+  mailKeepDest(); const m = mailBuild(S.ui.pwy, S.ui.pwk);
+  const lst = (x) => String(x || '').split(/[;,\s]+/).map((a) => a.trim()).filter((a) => a.includes('@')).join(';');
+  const q = [S.settings.destinatairesCci ? 'bcc=' + encodeURIComponent(lst(S.settings.destinatairesCci)) : '', 'subject=' + encodeURIComponent(m.subject)].filter(Boolean).join('&');
+  const a = document.createElement('a'); a.href = `mailto:${encodeURIComponent(lst(S.settings.destinataires)).replace(/%40/g, '@').replace(/%3B/g, ';')}?${q}`; document.body.appendChild(a); a.click(); a.remove();
+  toast('Messagerie ouverte avec les destinataires, les Cci et l’objet : copiez le mail puis collez-le dans le message.');
 }
 async function mailCopy() {
   const { pwy: wy, pwk: wk } = S.ui; const m = mailBuild(wy, wk);
-  const dest = $('#m-dest'); if (dest && dest.value.trim() !== (S.settings.destinataires || '')) { S.settings.destinataires = dest.value.trim(); store.saveSettings(); }
+  mailKeepDest();
   try {
     if (!window.ClipboardItem) throw new Error('no');
     await navigator.clipboard.write([new ClipboardItem({ 'text/html': new Blob([m.html], { type: 'text/html' }), 'text/plain': new Blob([m.text], { type: 'text/plain' }) })]);
@@ -3046,6 +3094,7 @@ function setMail() {
     <label class="field"><span>Objet du mail ({S} = semaine, {DU} et {AU} = dates, {SITE} = site)</span><input id="ml-obj" value="${esc(M.objet)}"></label>
     <label class="field"><span>Signature (une ligne par ligne ; la première est en gras)</span><textarea id="ml-sig" rows="6" style="font-family:var(--font-b)">${esc(M.signature)}</textarea></label>
     <label class="field"><span>Destinataires</span><input id="ml-dest" value="${esc(S.settings.destinataires || '')}" placeholder="adresse1@…; adresse2@…"></label>
+    <label class="field"><span>Destinataires en copie cachée (Cci)</span><input id="ml-cci" value="${esc(S.settings.destinatairesCci || '')}" placeholder="adresse1@…; adresse2@…"></label>
     <div class="row"><button type="button" class="btn primary" data-act="mailsave">Enregistrer</button></div>
   </div></section></div>`;
 }
@@ -3518,11 +3567,13 @@ const ACT = {
   pwknext: () => { const w = C.isoWeek(C.addDays(today(), 7)); S.ui.pwy = w.year; S.ui.pwk = w.week; render(); },
   progvalid: () => progValidate(), progpdf: () => progPdf(), progmail: () => openMail(), mailcopy: () => mailCopy(), mailhtml: () => mailDownload(),
   logodel: async (ds) => { S.settings.mail = { ...(S.settings.mail || {}), [ds.k]: '' }; await store.saveSettings(); },
-  mailsave: async () => { S.settings.mail = { ...(S.settings.mail || {}), objet: $('#ml-obj').value.trim() || DEFAULT_MAIL.objet, signature: $('#ml-sig').value }; S.settings.destinataires = $('#ml-dest').value.trim(); await store.saveSettings(); toast('Réglages du mail enregistrés.'); },
+  mailsave: async () => { S.settings.mail = { ...(S.settings.mail || {}), objet: $('#ml-obj').value.trim() || DEFAULT_MAIL.objet, signature: $('#ml-sig').value }; S.settings.destinataires = $('#ml-dest').value.trim(); S.settings.destinatairesCci = $('#ml-cci').value.trim(); await store.saveSettings(); toast('Réglages du mail enregistrés.'); },
   mailprev: () => openMail(),
   mailmodel: async (ds) => { S.settings.mail = { ...(S.settings.mail || {}), entete: ds.k }; await store.saveSettings(); render(); toast('Modèle d’en-tête « ' + MAIL_MODELS.find((m) => m[0] === ds.k)[1] + ' » choisi.'); },
   progxls: async () => { const st = progState(S.ui.pwy, S.ui.pwk); const rows = st.snap ? st.snap.rows : st.rows; const wb = XLSX.utils.book_new(); const aoa = [[`Programme des travaux S${S.ui.pwk} ${S.ui.pwy}${st.snap ? ' - validé le ' + fmtD(st.snap.validatedAt.slice(0, 10)) : ' - provisoire'}`], [], ['Jour', 'Date', 'Heures', 'Durée', 'Zone', 'Famille', 'Appareil', 'Nature des travaux', 'Ordre', 'Demandeur', 'Consignation', 'Impact']]; rows.forEach((r) => aoa.push([JOURS[dow(r.date)], fmtD(r.date), r.h, r.duree ? fmtDur(r.duree) : '', zoneTxt(r), typeOf(r.type).label, r.equip, r.nature, r.ordre, r.demandeur, r.consign, r.impact])); XLSX.utils.book_append_sheet(wb, sheet(aoa, [10, 11, 12, 8, 12, 16, 16, 40, 12, 14, 8, 60]), `S${S.ui.pwk}`); await xlsOut(wb, `Programme_S${C.pad(S.ui.pwk)}_${S.ui.pwy}.xlsx`); },
-  copy: async (ds) => { const el = document.getElementById(ds.src); if (!el) return; if (ds.src === 'm-dest') { S.settings.destinataires = el.value.trim(); store.saveSettings(); } try { await navigator.clipboard.writeText(el.value); toast('Copié.'); } catch (e) { el.removeAttribute('readonly'); el.focus(); el.select(); toast('Sélectionné : faites Ctrl+C (ou Copier) pour copier.'); } },
+  mailto: () => mailTo(),
+  banneroff: () => { try { localStorage.setItem('planmaint:banner-off', '1'); } catch (e) { /* ignoré */ } render(); },
+  copy: async (ds) => { const el = document.getElementById(ds.src); if (!el) return; if (ds.src === 'm-dest') { S.settings.destinataires = el.value.trim(); store.saveSettings(); } if (ds.src === 'm-cci') { S.settings.destinatairesCci = el.value.trim(); store.saveSettings(); } try { await navigator.clipboard.writeText(el.value); toast('Copié.'); } catch (e) { el.removeAttribute('readonly'); el.focus(); el.select(); toast('Sélectionné : faites Ctrl+C (ou Copier) pour copier.'); } },
   xlsyear: async () => { const wb = XLSX.utils.book_new(); appendBilan(wb, S.ui.year); XLSX.utils.book_append_sheet(wb, sheet([TASK_HEAD, ...tasksOfYear(S.ui.year).map(taskRow)], TASK_HEAD.map(() => 15)), 'Tâches'); await xlsOut(wb, `Bilan_maintenance_${S.ui.year}.xlsx`); },
   xlstasks: () => xlsTasks(filteredTasks(), `Taches_${S.ui.year}.xlsx`),
   xlsall: () => { const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, sheet([TASK_HEAD, ...[...S.tasks.values()].sort((a, b) => (C.refDate(a) || '').localeCompare(C.refDate(b) || '')).map(taskRow)], TASK_HEAD.map(() => 15)), 'Tâches'); yearsAvailable().forEach((y) => appendBilan(wb, y)); xlsOut(wb, `Maintenance_${S.settings.site}_complet.xlsx`); },
@@ -3682,6 +3733,9 @@ document.addEventListener('change', (e) => {
 /* ---------- vue : accueil (tuiles à déplier) ---------- */
 const IC = {
   board: '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 3v18"/><rect x="11.5" y="11.5" width="6" height="3.5" rx="1"/><path d="M14.5 18.5v2"/>',
+  wagon: '<rect x="2" y="5" width="20" height="11" rx="1.5"/><path d="M2 10.5h20M8 5v11M16 5v11"/><circle cx="6.5" cy="18.6" r="1.8"/><circle cx="17.5" cy="18.6" r="1.8"/>',
+  loco: '<path d="M3 16V9.5A1.5 1.5 0 0 1 4.5 8H11V4h5v4h2.5A2.5 2.5 0 0 1 21 10.5V16z"/><path d="M11 8v8M3 12h8M15 11h3"/><circle cx="7" cy="18.6" r="1.8"/><circle cx="17" cy="18.6" r="1.8"/>',
+  presta: '<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/>',
   home: '<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h5v-6h4v6h5V9.5"/>',
   inst: '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/><path d="m9 9 3 3 3-3M12 6v6"/>',
   prog: '<path d="M8 2v4M16 2v4M3 9h18"/><rect x="3" y="4" width="18" height="17" rx="2"/><path d="m8.5 15 2.5 2.5 4.5-5"/>',
@@ -3705,7 +3759,7 @@ const icon = (k, z = 26) => `<svg viewBox="0 0 24 24" width="${z}" height="${z}"
 function homeData() {
   const T = today(); const Y = +T.slice(0, 4); const all = [...S.tasks.values()].filter((t) => !t.annule);
   const by = (s) => all.filter((t) => stOf(t, T) === s);
-  const nx = C.isoWeek(C.addDays(T, 7)); const ps = progState(nx.year, nx.week);
+  const nx = C.isoWeek(C.addDays(T, 7)); const ps = progState(nx.year, nx.week); const nx2 = C.isoWeek(C.addDays(T, 14)); const ps2 = progState(nx2.year, nx2.week);
   const cw = C.isoWeek(T); const cur = progRows(cw.year, cw.week);
   const conf = by('aConfirmer').sort((a, b) => (a.prog?.date || '').localeCompare(b.prog?.date || ''));
   const dem = all.filter((t) => ['demande', 'aReprogrammer'].includes(stOf(t, T))).sort((a, b) => ((demOf(a) || {}).recue || a.fin || '').localeCompare((demOf(b) || {}).recue || b.fin || ''));
@@ -3714,7 +3768,7 @@ function homeData() {
     .sort((a, b) => Math.abs(b.ecartPer) - Math.abs(a.ecartPer));
   const theo = all.filter((t) => t.fin && t.fin.slice(0, 4) === String(Y) && t.fin <= T); const done = theo.filter((t) => t.real && t.real.date).length;
   const m = T.slice(5, 7); const gq = grItem(Y, m, 'q'), gc = grItem(Y, m, 'c');
-  return { T, Y, nx, ps, cw, cur, conf, dem, late, iv, theo, done, m, gq, gc, envoi: envoiDate(nx.year, nx.week) };
+  return { T, Y, nx, ps, nx2, ps2, cw, cur, conf, dem, late, iv, theo, done, m, gq, gc, envoi: envoiDate(nx.year, nx.week) };
 }
 function viewHome() {
   if (!S.tasks.size) return head('Accueil') + emptyData();
@@ -3722,6 +3776,7 @@ function viewHome() {
   const pv = D.ps.snap && !D.ps.changed;
   const tiles = [
     { k: 'prog', ic: 'prog', t: `Programme S${D.nx.week}`, v: D.ps.rows.length, s: pv ? `Validé · ${D.ps.rows.length} interventions` : D.ps.snap ? 'Modifié depuis la validation' : `À valider · envoi le ${fmtDM(D.envoi)}`, tone: pv ? 'ok' : dow(D.T) >= 3 ? 'bad' : 'warn' },
+    { k: 'prog2', ic: 'prog', t: `Programme S${D.nx2.week}`, v: D.ps2.rows.length, s: D.ps2.snap ? (D.ps2.changed ? 'Modifié depuis la validation' : 'Validé') : `Semaine +2 · en préparation`, tone: D.ps2.snap && !D.ps2.changed ? 'ok' : 'info' },
     { k: 'conf', ic: 'conf', t: 'Réalisations à confirmer', v: D.conf.length, s: D.conf.length ? 'créneaux passés à valider' : 'tout est confirmé', tone: D.conf.length ? 'or' : 'ok' },
     { k: 'dem', ic: 'dem', t: 'Demandes à planifier', v: D.dem.length, s: D.dem.length ? 'en attente d’un créneau' : 'aucune en attente', tone: D.dem.length ? 'vio' : 'ok' },
     { k: 'ecarts', ic: 'ecarts', t: 'Délais entre contrôles', v: D.iv.length, s: `${D.iv.filter((r) => r.verdict === 'court').length} trop rapprochés · ${D.iv.filter((r) => r.verdict === 'depasse').length} dépassés (${D.Y})`, tone: D.iv.length ? 'info' : 'ok' },
@@ -3745,11 +3800,11 @@ function homePanel(k, D) {
   const tbl = (head, rows, empty) => `<div class="tablewrap"><table class="t hm-t"><thead><tr>${head.map((h) => `<th${h.startsWith('>') ? ' class="r"' : ''}>${h.replace(/^>/, '')}</th>`).join('')}</tr></thead><tbody>${rows.join('') || `<tr><td colspan="${head.length}" class="empty">${empty}</td></tr>`}</tbody></table></div>`;
   const ph = (title, tools) => `<div class="hm-ph"><h3>${title}</h3><div class="row">${tools || ''}</div></div>`;
   const eq = (t) => `<span class="tcell">${plate(t.type)}<b>${esc(equipLabel(t))}</b></span>`;
-  if (k === 'prog') {
-    const st = D.ps; const rows = st.rows.map((r) => `<tr data-act="edit" data-id="${r.id}"><td class="mono small">${JOURS_C[dow(r.date)]} ${fmtDM(r.date)}</td><td class="mono small">${esc(r.h)}</td><td class="mono small">${esc(zoneTxt(r))}</td><td><span class="tcell">${plate(r.type)}<b>${esc(r.equip)}</b></span></td><td class="small">${esc(r.nature)}</td><td class="small impact">${esc(r.impact)}</td></tr>`);
-    return ph(`Programme des travaux S${D.nx.week} · ${st.snap ? (st.changed ? '<span class="pill or">modifié depuis la validation</span>' : `<span class="pill ok">validé le ${fmtD(st.snap.validatedAt.slice(0, 10))}</span>`) : '<span class="pill warn">provisoire</span>'}`,
-      `${!st.snap || st.changed ? `<button type="button" class="btn sm primary" data-act="hmvalid">${st.snap ? 'Revalider' : 'Valider le programme'}</button>` : ''}<button type="button" class="btn sm" data-act="hmpdf">PDF</button><button type="button" class="btn sm" data-act="hmmail">${icon('mail').replace('width="26" height="26"', 'width="15" height="15"')} Mail</button><button type="button" class="btn sm" data-act="goprog" data-y="${D.nx.year}" data-w="${D.nx.week}">Ouvrir</button>`)
-      + tbl(['Jour', 'Heures', 'Zone', 'Appareil', 'Nature', 'Impact'], rows, 'Aucune intervention planifiée la semaine prochaine.');
+  if (k === 'prog' || k === 'prog2') {
+    const two = k === 'prog2'; const st = two ? D.ps2 : D.ps; const nw = two ? D.nx2 : D.nx; const off = two ? 14 : 7; const rows = st.rows.map((r) => `<tr data-act="edit" data-id="${r.id}"><td class="mono small">${JOURS_C[dow(r.date)]} ${fmtDM(r.date)}</td><td class="mono small">${esc(r.h)}</td><td class="mono small">${esc(zoneTxt(r))}</td><td><span class="tcell">${plate(r.type)}<b>${esc(r.equip)}</b></span></td><td class="small">${esc(r.nature)}</td><td class="small impact">${esc(r.impact)}</td></tr>`);
+    return ph(`Programme des travaux S${nw.week} · ${st.snap ? (st.changed ? '<span class="pill or">modifié depuis la validation</span>' : `<span class="pill ok">validé le ${fmtD(st.snap.validatedAt.slice(0, 10))}</span>`) : '<span class="pill warn">provisoire</span>'}`,
+      `${!st.snap || st.changed ? `<button type="button" class="btn sm primary" data-act="hmvalid" data-o="${off}">${st.snap ? 'Revalider' : 'Valider le programme'}</button>` : ''}<button type="button" class="btn sm" data-act="hmpdf" data-o="${off}">PDF</button><button type="button" class="btn sm" data-act="hmmail" data-o="${off}">${icon('mail').replace('width="26" height="26"', 'width="15" height="15"')} Mail</button><button type="button" class="btn sm" data-act="goprog" data-y="${nw.year}" data-w="${nw.week}">Ouvrir</button><button type="button" class="btn sm" data-act="bdweek" data-y="${nw.year}" data-w="${nw.week}" data-go="1">Planificateur</button>`)
+      + tbl(['Jour', 'Heures', 'Zone', 'Appareil', 'Nature', 'Impact'], rows, two ? `Rien de planifié en S${nw.week} pour l’instant : préparez-la dans le Planificateur.` : 'Aucune intervention planifiée la semaine prochaine.');
   }
   if (k === 'conf') {
     const rows = D.conf.slice(0, 15).map((t) => `<tr><td class="mono small">${fmtD(t.prog.date)}</td><td>${eq(t)}</td><td class="small">${esc(t.designation)}</td><td class="r nowrap"><button type="button" class="btn sm primary" data-act="confreal" data-id="${t.id}">Réalisé le ${fmtDM(t.prog.date)}</button> <button type="button" class="btn sm" data-act="edit" data-id="${t.id}">Autre date…</button> <button type="button" class="btn sm" data-act="plan" data-id="${t.id}">Replanifier</button></td></tr>`);
@@ -3797,9 +3852,9 @@ function renderDock() {
 }
 Object.assign(ACT, {
   hm: (ds) => { S.ui.hm = S.ui.hm === ds.k ? '' : ds.k; render(); if (S.ui.hm) setTimeout(() => { const p = document.getElementById('hm-panel'); if (p) { const r = p.getBoundingClientRect(); if (r.bottom > innerHeight) p.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } }, 30); },
-  hmvalid: async () => { const n = C.isoWeek(C.addDays(today(), 7)); S.ui.pwy = n.year; S.ui.pwk = n.week; await progValidate(); render(); },
-  hmpdf: () => { const n = C.isoWeek(C.addDays(today(), 7)); S.ui.pwy = n.year; S.ui.pwk = n.week; progPdf(); },
-  hmmail: () => { const n = C.isoWeek(C.addDays(today(), 7)); S.ui.pwy = n.year; S.ui.pwk = n.week; openMail(); },
+  hmvalid: async (ds) => { const n = C.isoWeek(C.addDays(today(), +ds.o || 7)); S.ui.pwy = n.year; S.ui.pwk = n.week; await progValidate(); render(); },
+  hmpdf: (ds) => { const n = C.isoWeek(C.addDays(today(), +ds.o || 7)); S.ui.pwy = n.year; S.ui.pwk = n.week; progPdf(); },
+  hmmail: (ds) => { const n = C.isoWeek(C.addDays(today(), +ds.o || 7)); S.ui.pwy = n.year; S.ui.pwk = n.week; openMail(); },
   hmfam: (ds) => { S.ui.hmFam = ds.k || ''; render(); },
   hmtasks: (ds) => { S.ui.filters = { ...S.ui.filters, statut: ds.k, q: '', type: ds.f || '' }; S.ui.year = +today().slice(0, 4); go('tasks'); },
   hmstats: () => { S.ui.st.sub = 'suivi'; S.ui.st.per = 'annee'; S.ui.st.y = +today().slice(0, 4); S.ui.st.pb = true; go('stats'); },
@@ -4155,8 +4210,10 @@ function viewBoard() {
       <div class="bd-c1"><b>${esc(equipLabel(t))}</b>${stTag(c)}</div><div class="bd-c2">${esc(t.designation)}</div>
       <div class="bd-c3">${z ? `<span class="z">ZEP ${esc(zepNum(z))}</span>` : ''}${t.fin ? `<span>éch. ${fmtDM(t.fin)}</span>` : ''}${per ? `<span>${per}</span>` : ''}${d.demandeur ? `<span>${esc(d.demandeur)}</span>` : ''}</div></div>`; };
   const MAXC = 120;
-  const side = `<aside class="panel bd-side" id="bdSide" data-keep-scroll="side">
-    <div class="panel-h"><h2>À planifier</h2><span class="right muted small">${cands.length} intervention${cands.length > 1 ? 's' : ''}</span></div>
+  const tpl = Object.entries(BD_KINDS).map(([k, o]) => `<div class="bd-tpl" role="button" tabindex="0" data-bdnew="${k}" data-act="bdnew" data-k="${k}"${drg(true)} style="--c:${esc(typeOf(k).color)}" title="Glissez sur une case pour créer et placer, ou cliquez pour l’ajouter à la liste">${icon(o.ic, 20)}<span>${o.l}</span></div>`).join('');
+  const side = B.hide ? `<aside class="panel bd-side off" id="bdSide"><button type="button" class="bd-sidebtn" data-act="bdside" title="Afficher la liste à planifier"><span aria-hidden="true">▶</span><span class="bd-vt">À planifier · ${cands.length}</span></button></aside>` : `<aside class="panel bd-side" id="bdSide" data-keep-scroll="side">
+    <div class="panel-h"><h2>À planifier</h2><span class="right muted small">${cands.length} intervention${cands.length > 1 ? 's' : ''}<button type="button" class="btn sm ghost" data-act="bdside" title="Masquer la liste pour élargir la semaine" aria-label="Masquer la liste">◀</button></span></div>
+    <div class="bd-new"><span class="eyebrow">Nouvelle prestation</span><div class="bd-newrow">${tpl}</div></div>
     <div class="bd-fams">${famHtml}</div>
     <div class="bd-tools"><input type="search" id="bdQ" data-act-input="bdq" value="${esc(B.q || '')}" placeholder="Rechercher un appareil…" aria-label="Rechercher"><select id="bdSrc" data-act-change="bdsrc" aria-label="Origine" style="width:auto">${optList([['', 'Tout'], ['dem', 'Demandes'], ['late', 'En retard'], ['ech', 'Échéances']], B.src || '')}</select></div>
     <div class="bd-list" data-keep-scroll="list">${cands.slice(0, MAXC).map(card).join('') || '<p class="empty">Rien à planifier pour ce filtre.</p>'}${cands.length > MAXC ? `<p class="small muted" style="text-align:center">+ ${cands.length - MAXC} autres : affinez avec la famille ou la recherche</p>` : ''}</div>
@@ -4205,7 +4262,7 @@ function viewBoard() {
   const sub = month ? `${MOIS[mm - 1]} ${yy} · charge par ZEP et par jour` : `du ${fmtLong(days[0])} au ${fmtLong(days[days.length - 1])}`;
   const pickBar = pickT ? `<div class="bd-pickbar">${plate(pickT.type)}<span>Touchez une case pour placer <b>${esc(equipLabel(pickT))}</b>${sugRow && sugRow !== '__autre' ? ` · ZEP habituelle <b>${esc(zepNum(sugRow))}</b> surlignée` : ''}</span><button type="button" class="btn sm" data-act="bdpick" data-id="${pickT.id}">Annuler</button></div>` : '';
   return head('Planificateur', sub, tools) + `
-  <div class="bd">${side}
+  <div class="bd${B.hide ? ' side-off' : ''}">${side}
     <div class="bd-main">
       <div class="bd-sum">
         <div class="bd-k"><b class="mono">${tot}</b><span>intervention${tot > 1 ? 's' : ''} ${month ? 'dans le mois' : 'dans la semaine'}</span></div>
@@ -4220,6 +4277,65 @@ function viewBoard() {
       <div class="legend no-print"><span>Glissez une intervention de la liste vers la case <b>ZEP × jour</b> (sur tablette : touchez-la puis touchez la case, ou appui long et glisser).</span><span>Cliquez une étiquette pour régler heures, personnes, caténaire et impact.</span><span>Glissez une étiquette vers une autre case pour la déplacer, ou vers la liste pour la retirer.</span><span><i style="background:repeating-linear-gradient(135deg,var(--bad-bg) 0 4px,transparent 4px 8px);border:1px solid var(--bad)"></i>indisponible</span><span><i style="border:2px solid var(--warn)"></i>chevauchement d’horaires</span></div>
     </div>
   </div>`;
+}
+const BD_KINDS = {
+  WAGON: { l: 'Wagons', ic: 'wagon', t: 'Maintenance wagons', cat: 'MAINTENANCE' },
+  LOCO: { l: 'Loco', ic: 'loco', t: 'Prestation loco', cat: 'PRESTATION LOCO' },
+  PRESTA: { l: 'Autre', ic: 'presta', t: 'Autre prestation', cat: 'PRESTATION' },
+};
+const isPresta = (t) => !!(t && BD_KINDS[t.type]);
+function bdNewOpen(kind, date, zone) {
+  const K = BD_KINDS[kind]; if (!K) return; const F = FORM(); const R = S.settings.refs;
+  const catApps = (nom) => ((F.cats || []).find((c) => catKey(c.nom) === nom) || {}).appareils || [];
+  const zn = zone && zone !== '__autre' ? zone : '';
+  const demandeurs = [...new Set([...(R.demandeurs || []), ...(F.demandeurs || []), ...[...S.tasks.values()].map((x) => (demOf(x) || {}).demandeur)].filter(Boolean))].sort();
+  let spec = '';
+  if (kind === 'WAGON') spec = `<label class="field"><span>Opération</span><select id="n-op">${optList(['Maintenance', 'Expertise', 'Vérification', 'Réparation', 'Visite'].map((x) => [x, x]), 'Maintenance')}</select></label>
+      <label class="field"><span>Entreprise</span><input id="n-soc" list="dl-nsoc" placeholder="ex. ERMEWA"></label>
+      <label class="field"><span>Nombre de wagons</span><input type="number" id="n-nb" min="0" max="999"></label>
+      <label class="field wide"><span>N° de wagons (facultatif : collez la liste, le nombre se calcule seul)</span><textarea id="n-wag" rows="2" placeholder="33 87 4960 137-7"></textarea></label>
+      ${dl('dl-nsoc', Object.keys(wagSocs()).sort())}`;
+  else if (kind === 'LOCO') spec = `<label class="field"><span>Locomotive</span><input id="n-loco" list="dl-nloco" placeholder="ex. Y8000"></label>
+      <label class="field"><span>Prestation</span><input id="n-pre" list="dl-npre" value="Déchargement / chargement"></label>
+      ${dl('dl-nloco', [...new Set([...catApps('PRESTATION LOCO'), ...[...S.tasks.values()].filter((x) => x.type === 'LOCO').map((x) => x.equip)].filter(Boolean))])}${dl('dl-npre', ['Déchargement / chargement', 'Maintenance loco', 'Visite / contrôle', 'Ravitaillement', 'Manœuvre', 'Remorquage'])}`;
+  else spec = `<label class="field"><span>Intitulé</span><input id="n-lib" list="dl-nlib" placeholder="ex. Espace vert Réception"></label>
+      <label class="field"><span>Nature</span><input id="n-nat" list="dl-nnat" value="Prestation diverse"></label>
+      ${dl('dl-nlib', [...new Set([...catApps('ELAGAGE'), ...[...S.tasks.values()].filter((x) => x.type === 'PRESTA').map((x) => x.equip)].filter(Boolean))])}${dl('dl-nnat', ['Entretien espace vert', 'Élagage', 'Désherbage', 'Nettoyage', 'Prestation diverse'])}`;
+  openModal(`<div class="modal-h"><span class="bd-mic" style="--c:${esc(typeOf(kind).color)}">${icon(K.ic, 20)}</span><h2>${K.t}</h2><button type="button" class="btn ghost x" data-act="close" aria-label="Fermer">✕</button></div>
+  <div class="modal-b" id="bdNew" data-k="${kind}">
+    <fieldset class="sec"><legend>Prestation</legend><div class="form-grid">${spec}
+      <label class="field"><span>Demandeur / entreprise</span><input id="n-dem" list="dl-ndem">${dl('dl-ndem', demandeurs)}</label></div></fieldset>
+    <fieldset class="sec"><legend>Jour et lieu</legend><div class="form-grid">
+      <label class="field"><span>Jour</span><input type="date" id="n-date" value="${esc(date || '')}"></label>
+      <label class="field"><span>Début</span><input type="time" id="n-deb" value="08:00"></label>
+      <label class="field"><span>Durée</span><select id="n-dur">${durOptions(240)}</select></label>
+      <label class="field"><span>Nombre de personnes</span><input type="number" id="n-pers" min="0" max="99"></label>
+      <label class="field"><span>Zone (ZEP)</span>${zoneSelect('n-zo', zn)}</label>
+      <label class="field"><span>Consignation caténaire</span><select id="n-co">${optList([['', '—'], ['NON', 'NON'], ['OUI', 'OUI']], '')}</select></label>
+      ${cmmPicker('n-cmm', [], false)}
+      <label class="field wide"><span>Impact / remarque</span><textarea id="n-imp" rows="2" style="font-family:var(--font-b);font-size:.88rem;min-height:56px">${esc(zoneContrainte(zn))}</textarea></label>
+    </div><p class="small muted">${date ? 'Elle sera placée directement sur la grille.' : 'Sans jour, elle rejoint la liste « À planifier » : glissez-la ensuite sur la grille.'}</p></fieldset>
+  </div>
+  <div class="modal-f"><span class="sp"></span><button type="button" class="btn" data-act="close">Annuler</button><button type="button" class="btn primary" data-act="bdnewsave" data-k="${kind}">Enregistrer</button></div>`);
+  const zs = document.getElementById('n-zo'); if (zs) zs.dataset.prev = zn;
+}
+async function bdNewSave(kind) {
+  const K = BD_KINDS[kind]; const v = (x) => { const el = document.getElementById(x); return el ? el.value.trim() : ''; };
+  let equip = '', des = '', desc = '', detail = '', nb = null;
+  if (kind === 'WAGON') {
+    const soc = v('n-soc').toUpperCase(); const nums = extractWagons(v('n-wag')); nb = +v('n-nb') || nums.length || null;
+    equip = soc ? `Wagons ${soc}` : 'Wagons'; des = `${v('n-op') || 'Maintenance'} wagons`; desc = nums.join(', ');
+    detail = nb ? `${nb} wagon${nb > 1 ? 's' : ''}${nums.length ? ' : ' + nums.join(', ') : ''}` : '';
+  } else if (kind === 'LOCO') { equip = v('n-loco') || 'Locomotive'; des = v('n-pre') || K.t; }
+  else { equip = v('n-lib') || 'Prestation'; des = v('n-nat') || K.t; }
+  const date = v('n-date'), deb = v('n-deb'), dur = +v('n-dur') || null; const zn = zoneVal('n-zo'); const co = v('n-co');
+  const a = fromHHMM(deb); const h = a !== null && dur ? `${deb}-${toHHMM((a + dur) % 1440)}` : (deb || '');
+  const fz = (S.settings.refs.zonesFaisceau || {})[zn] || '';
+  const dem = { recue: today(), demandeur: v('n-dem'), du: date || null, au: date || null, faisceau: fz, zone: zn, consign: co, cmm: co === 'OUI' ? cmmVal('n-cmm') : [], comment: v('n-imp'), hDeb: deb, hFin: h.includes('-') ? h.split('-')[1] : '', duree: dur, categorie: K.cat, detail, nb };
+  const t = C.makeTask(new Map(S.tasks), { type: kind, designation: des, equip, code: '', description: desc, dem }, 'demande');
+  if (date) t.prog = { date, slots: [{ date, h }], zone: zn, faisceau: fz, consign: co, cmm: dem.cmm, demandeur: dem.demandeur, dDem: dem.recue, dVal: null, comment: dem.comment, planifieLe: today(), duree: dur, nbPers: +v('n-pers') || null };
+  BD().flash = { id: t.id, at: Date.now() }; closeModal(); await store.saveTasks([t]);
+  toast(date ? `${equip} placé le ${JOURS_C[dow(date)]} ${fmtDM(date)}${zn ? ', ZEP ' + zepNum(zn) : ''}.` : `${equip} ajouté à la liste « À planifier ».`);
 }
 /* placement, déplacement, retrait */
 async function bdPlace(id, si, zone, date) {
@@ -4261,6 +4377,7 @@ function bdOpen(id) {
     <dl class="kv"><dt>Fenêtre GMAO</dt><dd class="mono">${t.fin ? (t.debut ? fmtD(t.debut) + ' au ' : '') + fmtD(t.fin) : 'hors GMAO'}</dd>
       <dt>Demande</dt><dd>${d.recue ? 'reçue le ' + fmtD(d.recue) : 'non saisie'}${d.du ? ' · souhaitée le ' + fmtD(d.du) : ''}${d.hDeb ? ' · plage ' + esc(d.hDeb) + (d.hFin ? '–' + esc(d.hFin) : '') : ''}</dd>
       <dt>Statut</dt><dd>${pill(t)}</dd></dl>
+    ${isPresta(t) ? `<fieldset class="sec"><legend>Prestation</legend><div class="form-grid"><label class="field"><span>Libellé</span><input id="b-eqp" value="${esc(t.equip)}"></label><label class="field"><span>Nature</span><input id="b-des" value="${esc(t.designation)}"></label><label class="field wide"><span>Détail (n° de wagons, remarques…)</span><textarea id="b-det" rows="2" style="font-family:var(--font-b);font-size:.86rem;min-height:50px">${esc(d.detail || t.description || '')}</textarea></label></div></fieldset>` : ''}
     <fieldset class="sec"><legend>Jours et heures</legend>
       <div class="srow-h small muted"><span>Jour</span><span>Début</span><span>Durée</span><span>Fin</span><span></span></div>
       <div class="slots-ed" id="slotsEd">${slots.map(slotRow).join('')}</div>
@@ -4294,23 +4411,24 @@ async function bdSave(id) {
     t.aReprog = false;
   } else t.prog = null;
   if (t.dem && !t.dem.demandeur && v('b-dem')) t.dem = { ...t.dem, demandeur: v('b-dem') };
+  if (document.getElementById('b-eqp')) { t.equip = v('b-eqp') || t.equip; t.designation = v('b-des') || t.designation; const det = v('b-det'); t.dem = { ...(t.dem || {}), detail: det }; if (t.type === 'WAGON') { const nums = extractWagons(det); t.description = nums.join(', '); if (nums.length) t.dem.nb = nums.length; } else t.description = det; }
   const rd = v('b-real'); t.real = rd ? { ...(t.real || {}), date: rd, src: 'app' } : null;
   const grp = (demOf(t) || {}).grp; const sibs = grp && t.prog ? [...S.tasks.values()].filter((x) => x.id !== t.id && x.dem && x.dem.grp === grp && !(x.real && x.real.date)).map((x) => { const c = clone(x); c.prog = clone(t.prog); c.aReprog = false; return c; }) : [];
   BD().flash = { id, at: Date.now() }; closeModal(); await store.saveTasks([t, ...sibs]);
   toast(`${equipLabel(t)} enregistré${sibs.length ? ` (+ ${sibs.length} appareil${sibs.length > 1 ? 's' : ''} de la même demande)` : ''}.`);
 }
-CMM_FOR['b-co'] = 'b-cmm';
+CMM_FOR['b-co'] = 'b-cmm'; CMM_FOR['n-co'] = 'n-cmm';
 document.addEventListener('change', (e) => {
-  const el = e.target; if (!el || (el.id !== 'b-zo' && el.id !== 'b-zo-txt')) return;
-  const sel = document.getElementById('b-zo'); const imp = document.getElementById('b-imp'); if (!sel || !imp) return;
-  const nz = zoneVal('b-zo'); const old = zoneContrainte(sel.dataset.prev || '');
+  const el = e.target; if (!el || !/^[bn]-zo(-txt)?$/.test(el.id)) return; const px = el.id[0];
+  const sel = document.getElementById(px + '-zo'); const imp = document.getElementById(px + '-imp'); if (!sel || !imp) return;
+  const nz = zoneVal(px + '-zo'); const old = zoneContrainte(sel.dataset.prev || '');
   if (!imp.value.trim() || imp.value.trim() === old) imp.value = zoneContrainte(nz) || imp.value;
   sel.dataset.prev = nz;
 });
 Object.assign(ACT, {
   bdfam: (ds) => { const B = BD(); B.fam = B.fam === ds.k ? '' : ds.k; render(); },
   bdmode: (ds) => { BD().mode = ds.k; if (ds.k === 'month') S.ui.month = C.weekMonday(S.ui.wy, S.ui.wk).slice(0, 7); render(); },
-  bdweek: (ds) => { S.ui.wy = +ds.y; S.ui.wk = +ds.w; BD().mode = 'week'; render(); },
+  bdweek: (ds) => { S.ui.wy = +ds.y; S.ui.wk = +ds.w; BD().mode = 'week'; if (ds.go) go('board'); else render(); },
   bdpick: (ds) => { if (Date.now() - bdLastDrop < 600) return; const B = BD(); B.pick = B.pick === ds.id ? null : ds.id; document.body.classList.toggle('bd-picking', !!B.pick); render(); },
   bdcell: (ds) => {
     if (Date.now() - bdLastDrop < 600) return; const B = BD();
@@ -4319,6 +4437,9 @@ Object.assign(ACT, {
   },
   bdopen: (ds, el, e) => { if (Date.now() - bdLastDrop < 600) return; const B = BD(); if (B.pick) { e.stopPropagation(); const td = el.closest('.bd-cell'); if (td) bdPlace(B.pick, '', td.dataset.z, td.dataset.d); return; } bdOpen(ds.id); },
   bdsave: (ds) => bdSave(ds.id),
+  bdside: () => { const B = BD(); B.hide = !B.hide; render(); },
+  bdnew: (ds) => { if (Date.now() - bdLastDrop < 600) return; bdNewOpen(ds.k, '', ''); },
+  bdnewsave: (ds) => bdNewSave(ds.k),
   bdunplan: (ds) => bdUnplan(ds.id),
   bdfull: (ds) => { closeModal(); openEditor(ds.id); },
   bdcr: (ds) => { const r = hm(ds.h); const row = document.querySelector('#slotsEd .srow'); if (!r || !row) return; row.querySelector('.s-deb').value = toHHMM(r[0]); const dur = (r[1] - r[0] + 1440) % 1440; const sel = row.querySelector('.s-dur'); if (![...sel.options].some((o) => +o.value === dur)) sel.innerHTML = durOptions(dur); sel.value = String(dur); row.querySelector('.s-fin').textContent = slotFin(row) || '—'; },
@@ -4328,6 +4449,7 @@ Object.assign(CHANGE, {
   bdcompact: (el) => { BD().compact = el.checked; render(); },
 });
 document.addEventListener('input', (e) => { const el = e.target; if (el.dataset && el.dataset.actInput === 'bdq') { clearTimeout(qTimer); qTimer = setTimeout(() => { BD().q = el.value; render(); }, 200); } });
+document.addEventListener('keydown', (e) => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches && e.target.matches('div[role="button"][data-act], .bd-card, .bd-chip')) { e.preventDefault(); e.target.click(); } });
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && BD().pick && !$('#modalRoot').childElementCount) { BD().pick = null; document.body.classList.remove('bd-picking'); render(); } });
 
 /* glisser-déposer : souris (HTML5) */
@@ -4341,15 +4463,16 @@ function bdHighlight(id) {
 function bdDropOn(target) {
   if (!BDRAG) return; const D0 = BDRAG; BDRAG = null; bdLastDrop = Date.now();
   const cell = target && target.closest && target.closest('.bd-cell'); const side = target && target.closest && target.closest('#bdSide');
+  if (D0.nw) { if (cell) bdNewOpen(D0.nw, cell.dataset.d, cell.dataset.z); return; }
   if (cell) bdPlace(D0.id, D0.si, cell.dataset.z, cell.dataset.d);
   else if (side && D0.si !== undefined && D0.si !== '') bdUnplan(D0.id, (S.tasks.get(D0.id)?.prog?.slots || []).length > 1 ? D0.si : '');
 }
 function bdClean() { document.querySelectorAll('.bd-cell.over,#bdSide.over').forEach((x) => x.classList.remove('over')); document.querySelectorAll('.dragging').forEach((x) => x.classList.remove('dragging')); document.body.classList.remove('bd-dragging'); }
 document.addEventListener('dragstart', (e) => {
-  const el = e.target.closest && e.target.closest('[data-bd]'); if (!el) return;
-  BDRAG = { id: el.dataset.bd, si: el.dataset.si ?? '' };
+  const el = e.target.closest && e.target.closest('[data-bd],[data-bdnew]'); if (!el) return;
+  BDRAG = el.dataset.bdnew ? { nw: el.dataset.bdnew } : { id: el.dataset.bd, si: el.dataset.si ?? '' };
   try { e.dataTransfer.setData('text/plain', el.dataset.bd); e.dataTransfer.effectAllowed = 'move'; } catch (x) { /* ignoré */ }
-  el.classList.add('dragging'); document.body.classList.add('bd-dragging'); bdHighlight(BDRAG.si === '' ? BDRAG.id : null);
+  el.classList.add('dragging'); document.body.classList.add('bd-dragging'); if (!BDRAG.nw) bdHighlight(BDRAG.si === '' ? BDRAG.id : null);
 });
 document.addEventListener('dragover', (e) => {
   if (!BDRAG) return; const cell = e.target.closest && (e.target.closest('.bd-cell') || e.target.closest('#bdSide'));
@@ -4362,13 +4485,13 @@ document.addEventListener('dragend', () => { bdClean(); document.querySelectorAl
 /* glisser-déposer : tactile (appui long puis glisser) */
 let TDR = null;
 document.addEventListener('touchstart', (e) => {
-  const el = e.target.closest && e.target.closest('[data-bd]'); if (!el || e.touches.length > 1) return;
+  const el = e.target.closest && e.target.closest('[data-bd],[data-bdnew]'); if (!el || e.touches.length > 1) return;
   if (el.classList.contains('done')) return;
   const p = e.touches[0];
   TDR = { el, x: p.clientX, y: p.clientY, on: false, ghost: null, timer: setTimeout(() => {
-    if (!TDR) return; TDR.on = true; BDRAG = { id: el.dataset.bd, si: el.dataset.si ?? '' };
+    if (!TDR) return; TDR.on = true; BDRAG = el.dataset.bdnew ? { nw: el.dataset.bdnew } : { id: el.dataset.bd, si: el.dataset.si ?? '' };
     const g = el.cloneNode(true); g.className = 'bd-ghost ' + el.className.replace(/\b(pick|flash)\b/g, ''); g.style.width = Math.min(220, el.offsetWidth) + 'px'; g.style.left = TDR.x + 'px'; g.style.top = TDR.y + 'px'; document.body.appendChild(g); TDR.ghost = g;
-    el.classList.add('dragging'); document.body.classList.add('bd-dragging'); bdHighlight(BDRAG.si === '' ? BDRAG.id : null);
+    el.classList.add('dragging'); document.body.classList.add('bd-dragging'); if (!BDRAG.nw) bdHighlight(BDRAG.si === '' ? BDRAG.id : null);
     if (navigator.vibrate) try { navigator.vibrate(12); } catch (x) { /* ignoré */ }
   }, 320) };
 }, { passive: true });
